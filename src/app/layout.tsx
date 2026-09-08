@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,10 +40,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground flex min-h-full flex-col">
-        <TooltipProvider delay={200}>
-          {children}
-          <Toaster richColors position="top-center" />
-        </TooltipProvider>
+        <Providers>
+          <TooltipProvider delay={200}>
+            {children}
+            <Toaster richColors position="top-center" />
+          </TooltipProvider>
+        </Providers>
       </body>
     </html>
   );

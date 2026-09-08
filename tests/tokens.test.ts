@@ -34,13 +34,13 @@ describe("access tokens", () => {
 
 describe("refresh tokens", () => {
   it("hashes the raw token deterministically", async () => {
-    const { generateRefreshToken, hashToken } = await import("@/lib/auth/tokens");
+    const { generateRefreshToken, hashToken } = await import("@/lib/auth/opaque-tokens");
     const { token, tokenHash } = generateRefreshToken();
     expect(hashToken(token)).toBe(tokenHash);
   });
 
   it("produces different tokens on each call", async () => {
-    const { generateRefreshToken } = await import("@/lib/auth/tokens");
+    const { generateRefreshToken } = await import("@/lib/auth/opaque-tokens");
     const a = generateRefreshToken();
     const b = generateRefreshToken();
     expect(a.token).not.toBe(b.token);
