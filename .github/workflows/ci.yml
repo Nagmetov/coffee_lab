@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  # Not real credentials — just enough for `prisma generate` and `next build`
+  # to run without a live database. Integration tests that need a real
+  # Postgres/Redis run locally via docker-compose (see README).
+  DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+  REDIS_URL: "redis://localhost:6379"
+  JWT_ACCESS_SECRET: "ci-only-access-secret-not-for-production-use"
+  JWT_REFRESH_SECRET: "ci-only-refresh-secret-not-for-production-use"
+  APP_URL: "http://localhost:3000"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build -t coffeelab:ci .
