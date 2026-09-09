@@ -8,8 +8,13 @@ import {
   type PromotionRule,
 } from "@/lib/pricing";
 import { pointsForOrder, tierForPoints } from "@/lib/loyalty";
+import {
+  assertValidOrderTransition,
+  InvalidOrderTransitionError,
+} from "@/lib/order-state-machine";
+import { invalidateDashboardStatsCache } from "@/server/admin-stats-service";
 import type { CartView } from "@/server/cart-service";
-import type { FulfillmentType } from "@prisma/client";
+import type { FulfillmentType, OrderStatus } from "@prisma/client";
 
 export class CheckoutError extends Error {
   constructor(
@@ -195,3 +200,75 @@ export async function getOrderForUser(orderId: string, userId: string) {
     },
   });
 }
+
+// ---------- Admin ----------
+
+export async function adminListOrders(params: { status?: OrderStatus; search?: string }) {
+  return prisma.order.findMany({
+    where: {
+      status: params.status,
+      ...(params.search
+        ? {
+            OR: [
+              { orderNumber: { contains: params.search, mode: "insensitive" } },
+              { user: { email: { contains: params.search, mode: "insensitive" } } },
+              { user: { name: { contains: params.search, mode: "insensitive" } } },
+            ],
+          }
+        : {}),
+    },
+    include: { items: true, user: { select: { name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+}
+
+export async function getOrderForAdmin(orderId: string) {
+  return prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: true,
+      statusHistory: {
+        orderBy: { createdAt: "asc" },
+        include: { changedBy: { select: { name: true } } },
+      },
+      address: true,
+      promotion: true,
+      user: { select: { name: true, email: true } },
+    },
+  });
+}
+
+/**
+ * Admin-driven status change: validated against the same finite-state
+ * machine checkout uses (src/lib/order-state-machine.ts), so an admin
+ * can't skip straight from PENDING to READY any more than the system can.
+ * Intentionally does not reverse loyalty points or restock on
+ * cancellation — that belongs to a separate refund flow, out of scope here.
+ */
+export async function adminUpdateOrderStatus(
+  orderId: string,
+  toStatus: OrderStatus,
+  adminUserId: string,
+  note?: string,
+) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) throw new CheckoutError("Заказ не найден", "EMPTY_CART");
+
+  assertValidOrderTransition(order.status, toStatus);
+
+  const updated = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: toStatus,
+      statusHistory: {
+        create: { fromStatus: order.status, toStatus, changedById: adminUserId, note },
+      },
+    },
+  });
+
+  await invalidateDashboardStatsCache();
+  return updated;
+}
+
+export { InvalidOrderTransitionError };

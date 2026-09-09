@@ -150,6 +150,13 @@ export async function getProductBySlug(slug: string) {
   return product;
 }
 
+export async function getProductByIdForAdmin(productId: string) {
+  return prisma.product.findUnique({
+    where: { id: productId },
+    include: { category: true, variants: { orderBy: { priceModifier: "asc" } } },
+  });
+}
+
 export async function getRelatedProducts(productId: string, limit = 4) {
   const target = await prisma.product.findUnique({
     where: { id: productId },
@@ -226,4 +233,108 @@ export async function addReview(
 
   await invalidateProductListingCache();
   return review;
+}
+
+// ---------- Admin ----------
+
+export async function adminListProducts() {
+  return prisma.product.findMany({
+    include: { category: true, variants: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export type ProductInput = {
+  name: string;
+  slug: string;
+  description: string;
+  categoryId: string;
+  basePrice: number;
+  tastingNotes: string[];
+  tags: string[];
+  variants: {
+    id?: string;
+    name: string;
+    priceModifier: number;
+    stock: number;
+    sku: string;
+  }[];
+};
+
+export async function createProduct(input: ProductInput) {
+  const product = await prisma.product.create({
+    data: {
+      name: input.name,
+      slug: input.slug,
+      description: input.description,
+      categoryId: input.categoryId,
+      basePrice: input.basePrice,
+      tastingNotes: input.tastingNotes,
+      tags: input.tags,
+      variants: {
+        create: input.variants.map((v, i) => ({
+          name: v.name,
+          priceModifier: v.priceModifier,
+          stock: v.stock,
+          sku: v.sku,
+          isDefault: i === 0,
+        })),
+      },
+    },
+  });
+  await invalidateProductListingCache();
+  return product;
+}
+
+export async function updateProduct(productId: string, input: ProductInput) {
+  const existingVariants = await prisma.productVariant.findMany({ where: { productId } });
+  const existingIds = new Set(existingVariants.map((v) => v.id));
+  const keptIds = new Set(input.variants.filter((v) => v.id).map((v) => v.id));
+  const removedIds = [...existingIds].filter((id) => !keptIds.has(id));
+
+  await prisma.$transaction([
+    prisma.product.update({
+      where: { id: productId },
+      data: {
+        name: input.name,
+        slug: input.slug,
+        description: input.description,
+        categoryId: input.categoryId,
+        basePrice: input.basePrice,
+        tastingNotes: input.tastingNotes,
+        tags: input.tags,
+      },
+    }),
+    ...(removedIds.length
+      ? [prisma.productVariant.deleteMany({ where: { id: { in: removedIds } } })]
+      : []),
+    ...input.variants.map((v) =>
+      v.id
+        ? prisma.productVariant.update({
+            where: { id: v.id },
+            data: {
+              name: v.name,
+              priceModifier: v.priceModifier,
+              stock: v.stock,
+              sku: v.sku,
+            },
+          })
+        : prisma.productVariant.create({
+            data: {
+              productId,
+              name: v.name,
+              priceModifier: v.priceModifier,
+              stock: v.stock,
+              sku: v.sku,
+            },
+          }),
+    ),
+  ]);
+
+  await invalidateProductListingCache();
+}
+
+export async function setProductActive(productId: string, isActive: boolean) {
+  await prisma.product.update({ where: { id: productId }, data: { isActive } });
+  await invalidateProductListingCache();
 }
