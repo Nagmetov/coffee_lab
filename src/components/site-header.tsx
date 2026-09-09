@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Coffee, User } from "lucide-react";
+import { Coffee, ShoppingBag, User } from "lucide-react";
 import { useCurrentUser, useInvalidateCurrentUser } from "@/hooks/use-current-user";
+import { useCart } from "@/hooks/use-cart";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ const NAV_LINKS = [
 
 export function SiteHeader() {
   const { data: user, isLoading } = useCurrentUser();
+  const { data: cart } = useCart();
   const invalidateUser = useInvalidateCurrentUser();
   const router = useRouter();
 
@@ -57,6 +59,21 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label="Корзина"
+            className="relative"
+            nativeButton={false}
+            render={<Link href="/cart" />}
+          >
+            <ShoppingBag className="size-5" />
+            {!!cart?.itemCount && (
+              <span className="bg-accent text-accent-foreground absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium">
+                {cart.itemCount > 9 ? "9+" : cart.itemCount}
+              </span>
+            )}
+          </Button>
           {!isLoading && !user && (
             <Button
               size="sm"

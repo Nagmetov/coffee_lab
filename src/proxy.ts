@@ -3,7 +3,7 @@ import { ACCESS_COOKIE } from "@/lib/auth/cookies";
 import { verifyAccessToken } from "@/lib/auth/tokens";
 
 const ADMIN_PREFIX = "/admin";
-const CUSTOMER_PREFIXES = ["/profile", "/orders"];
+const CUSTOMER_PREFIXES = ["/profile", "/orders", "/checkout"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -31,5 +31,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/profile/:path*", "/orders/:path*"],
+  matcher: ["/admin/:path*", "/profile/:path*", "/orders/:path*", "/checkout/:path*"],
 };

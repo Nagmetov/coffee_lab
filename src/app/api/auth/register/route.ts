@@ -5,6 +5,8 @@ import { registerUser } from "@/server/auth-service";
 import { setAuthCookies } from "@/lib/auth/cookies";
 import { handleApiError, isSameOrigin, jsonError } from "@/lib/api/respond";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getGuestTokenCookie } from "@/lib/cart-identity";
+import { mergeGuestCartIntoUser } from "@/server/cart-service";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) {
@@ -26,6 +28,11 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
     setAuthCookies(cookieStore, session);
+
+    const guestToken = await getGuestTokenCookie();
+    if (guestToken) {
+      await mergeGuestCartIntoUser(user.id, guestToken);
+    }
 
     return NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
