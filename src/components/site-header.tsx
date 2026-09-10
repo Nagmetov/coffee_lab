@@ -6,6 +6,7 @@ import { Coffee, ShoppingBag, User } from "lucide-react";
 import { useCurrentUser, useInvalidateCurrentUser } from "@/hooks/use-current-user";
 import { useCart } from "@/hooks/use-cart";
 import { MobileNav } from "@/components/storefront/mobile-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -61,6 +62,7 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <MobileNav />
+          <ThemeToggle />
           <Button
             size="icon"
             variant="ghost"
