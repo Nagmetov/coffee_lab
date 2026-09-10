@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
+function subscribeNever() {
+  return () => {};
+}
+
+// resolvedTheme is only known after hydration (it depends on the client's
+// system preference / localStorage), so render a neutral placeholder on the
+// server and the first client render, then swap in the real icon.
+function useMounted() {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
+}
+
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // resolvedTheme is only known after hydration (it depends on the client's
-  // system preference / localStorage), so render a neutral placeholder
-  // first to avoid a server/client markup mismatch.
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return (

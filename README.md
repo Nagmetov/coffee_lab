@@ -49,9 +49,10 @@ npm run dev
 - Админ: `admin@coffeelab.dev` / `ChangeMe123!`
 - Клиент: `customer@coffeelab.dev` / `CustomerDemo123!`
 
-В проекте нет почтового провайдера — ссылки подтверждения email и сброса
-пароля в dev-режиме возвращаются прямо в ответе API и показываются на
-странице (см. `devVerificationUrl`/`devResetUrl`).
+Почта отправляется через [Resend](https://resend.com), если задан
+`RESEND_API_KEY` в `.env`. Без ключа письма не уходят — ссылки подтверждения
+email и сброса пароля возвращаются прямо в ответе API и показываются на
+странице (см. `devVerificationUrl`/`devResetUrl` в `src/lib/email.ts`).
 
 ## Запуск в Docker (полностью, включая приложение)
 

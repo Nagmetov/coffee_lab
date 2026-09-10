@@ -32,16 +32,27 @@ export default function RegisterPage() {
 
   async function onSubmit(values: RegisterInput) {
     try {
-      const result = await apiJson<{ devVerificationUrl: string }>("/api/auth/register", {
+      const result = await apiJson<{ devVerificationUrl?: string }>("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
       await invalidateUser();
-      toast.success("Аккаунт создан!", {
-        description: "Подтвердите email, чтобы получать бонусы за заказы.",
-      });
-      router.push(result.devVerificationUrl);
+
+      if (result.devVerificationUrl) {
+        // No email provider configured — jump straight to the verification
+        // link instead of sending the user to check a mailbox that will
+        // stay empty.
+        toast.success("Аккаунт создан!", {
+          description: "Демо-режим: письмо не отправляется, открываем ссылку подтверждения.",
+        });
+        router.push(result.devVerificationUrl);
+      } else {
+        toast.success("Аккаунт создан!", {
+          description: `Письмо со ссылкой подтверждения отправлено на ${values.email}.`,
+        });
+        router.push("/");
+      }
       router.refresh();
     } catch (error) {
       if (error instanceof ApiError) {
