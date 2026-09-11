@@ -39,7 +39,11 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="grid gap-10 sm:grid-cols-2">
-        <ProductThumb categorySlug={product.category.slug} className="w-full" />
+        <ProductThumb
+          categorySlug={product.category.slug}
+          seed={product.slug}
+          className="w-full"
+        />
 
         <div className="space-y-6">
           <div>

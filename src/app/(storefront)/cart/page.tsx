@@ -81,7 +81,11 @@ export default function CartPage() {
             key={item.variantId}
             className="border-border/70 flex items-center gap-4 rounded-lg border p-3"
           >
-            <ProductThumb categorySlug={item.categorySlug} className="size-16 shrink-0" />
+            <ProductThumb
+              categorySlug={item.categorySlug}
+              seed={item.productSlug}
+              className="size-16 shrink-0"
+            />
             <div className="flex-1">
               <Link
                 href={`/products/${item.productSlug}`}

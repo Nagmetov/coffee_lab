@@ -11,7 +11,11 @@ export function ProductCard({ product }: { product: ProductListItem }) {
       href={`/products/${product.slug}`}
       className="group border-border/70 bg-card flex flex-col gap-3 rounded-xl border p-3 transition-shadow hover:shadow-md"
     >
-      <ProductThumb categorySlug={product.categorySlug} className="w-full" />
+      <ProductThumb
+        categorySlug={product.categorySlug}
+        seed={product.slug}
+        className="w-full"
+      />
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-foreground font-medium group-hover:underline">
