@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/product-card";
 import { listCategories, listProducts } from "@/server/product-service";
 
+// Without this the page has no dynamic API call in its body, so Next
+// prerenders it once at build time and "Популярное"/"Категории" would
+// freeze at whatever the catalog looked like then. Match the Redis
+// listing cache's own TTL instead of statically freezing it forever.
+export const revalidate = 60;
+
 const FEATURES = [
   {
     icon: Flame,
