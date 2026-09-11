@@ -15,6 +15,15 @@ const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   CANCELLED: [],
 };
 
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING: "Ожидает оплаты",
+  PAID: "Оплачен",
+  PREPARING: "Готовится",
+  READY: "Готов",
+  COMPLETED: "Выполнен",
+  CANCELLED: "Отменён",
+};
+
 export class InvalidOrderTransitionError extends Error {
   constructor(
     public readonly from: OrderStatus,

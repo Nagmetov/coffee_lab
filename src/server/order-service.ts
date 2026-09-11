@@ -175,7 +175,17 @@ export async function checkout(
       data: { loyaltyPoints: newPoints, loyaltyTier: tierForPoints(newPoints) },
     });
 
-    return paidOrder;
+    return {
+      ...paidOrder,
+      items: cart.items.map((item) => ({
+        productName: item.productName,
+        variantName: item.variantName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+      userEmail: user.email,
+      userName: user.name,
+    };
   });
 
   return order;
@@ -265,6 +275,7 @@ export async function adminUpdateOrderStatus(
         create: { fromStatus: order.status, toStatus, changedById: adminUserId, note },
       },
     },
+    include: { user: { select: { name: true, email: true } } },
   });
 
   await invalidateDashboardStatsCache();
