@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProductByIdForAdmin, listCategories } from "@/server/product-service";
 import { ProductForm } from "@/components/admin/product-form";
+import { ProductImageManager } from "@/components/admin/product-image-manager";
 
 export const metadata = { title: "Редактировать товар" };
 
@@ -21,6 +22,7 @@ export default async function EditProductPage({
       <h2 className="font-heading text-2xl font-semibold">
         Редактировать: {product.name}
       </h2>
+      <ProductImageManager productId={product.id} initialImages={product.images} />
       <ProductForm
         categories={categories}
         productId={product.id}

@@ -14,6 +14,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
       <ProductThumb
         categorySlug={product.categorySlug}
         seed={product.slug}
+        imageUrl={product.images[0]}
         className="w-full"
       />
       <div className="flex flex-1 flex-col gap-1">

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const ACCENTS = ["var(--primary)", "var(--accent)", "var(--chart-2)"];
@@ -109,20 +110,39 @@ const GRADIENTS: Record<string, string> = {
 };
 
 /**
- * No product photography in this demo catalog, so instead of broken <img>
- * tags we render a bespoke category illustration on a tinted backdrop.
- * `seed` (e.g. the product slug) picks a deterministic accent so items in
+ * Renders an uploaded product photo when one exists (see the admin image
+ * manager); otherwise falls back to a bespoke category illustration on a
+ * tinted backdrop so the grid never shows a broken <img>. `seed` (e.g. the
+ * product slug) picks a deterministic accent for the fallback so items in
  * the same category aren't visually identical.
  */
 export function ProductThumb({
   categorySlug,
   seed,
+  imageUrl,
   className,
 }: {
   categorySlug: string;
   seed?: string;
+  imageUrl?: string;
   className?: string;
 }) {
+  if (imageUrl) {
+    return (
+      <div
+        className={cn("relative aspect-square overflow-hidden rounded-lg", className)}
+      >
+        <Image
+          src={imageUrl}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 20vw, 40vw"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
   const Art = ART[categorySlug] ?? CoffeeCupArt;
   const gradient = GRADIENTS[categorySlug] ?? GRADIENTS.napitki;
   const accent = ACCENTS[pickVariant(seed ?? categorySlug, ACCENTS.length)];

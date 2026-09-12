@@ -17,6 +17,7 @@ export type ProductListItem = {
   categorySlug: string;
   categoryName: string;
   inStock: boolean;
+  images: string[];
 };
 
 export async function listCategories() {
@@ -63,9 +64,10 @@ export async function listProducts(params: {
         reviewCount: number;
         categorySlug: string;
         categoryName: string;
+        images: string[];
       }>
     >`
-      SELECT p.id, p.name, p.slug, p.description, p."basePrice", p.tags,
+      SELECT p.id, p.name, p.slug, p.description, p."basePrice", p.tags, p.images,
              p."avgRating", p."reviewCount", c.slug as "categorySlug", c.name as "categoryName"
       FROM "Product" p
       JOIN "Category" c ON c.id = p."categoryId"
@@ -96,6 +98,7 @@ export async function listProducts(params: {
       reviewCount: p.reviewCount,
       categorySlug: p.category.slug,
       categoryName: p.category.name,
+      images: p.images,
     }));
   }
 
@@ -120,6 +123,7 @@ export async function listProducts(params: {
     categorySlug: p.categorySlug,
     categoryName: p.categoryName,
     inStock: (stockByProduct.get(p.id) ?? 0) > 0,
+    images: p.images,
   }));
 
   await redis
@@ -181,6 +185,7 @@ export async function getRelatedProducts(productId: string, limit = 4) {
       name: true,
       slug: true,
       basePrice: true,
+      images: true,
       category: { select: { slug: true, name: true } },
     },
   });
@@ -341,6 +346,27 @@ export async function updateProduct(productId: string, input: ProductInput) {
 export async function setProductActive(productId: string, isActive: boolean) {
   await prisma.product.update({ where: { id: productId }, data: { isActive } });
   await invalidateProductListingCache();
+}
+
+export async function addProductImage(productId: string, url: string) {
+  const product = await prisma.product.update({
+    where: { id: productId },
+    data: { images: { push: url } },
+    select: { images: true },
+  });
+  await invalidateProductListingCache();
+  return product.images;
+}
+
+export async function removeProductImage(productId: string, url: string) {
+  const product = await prisma.product.findUniqueOrThrow({
+    where: { id: productId },
+    select: { images: true },
+  });
+  const images = product.images.filter((img) => img !== url);
+  await prisma.product.update({ where: { id: productId }, data: { images } });
+  await invalidateProductListingCache();
+  return images;
 }
 
 export async function adminListReviews() {

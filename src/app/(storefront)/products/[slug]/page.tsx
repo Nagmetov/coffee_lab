@@ -43,6 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
         <ProductThumb
           categorySlug={product.category.slug}
           seed={product.slug}
+          imageUrl={product.images[0]}
           className="w-full"
         />
 
@@ -133,6 +134,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
                   categorySlug: r.category.slug,
                   categoryName: r.category.name,
                   inStock: true,
+                  images: r.images,
                 }}
               />
             ))}

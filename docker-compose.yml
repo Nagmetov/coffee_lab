@@ -42,6 +42,11 @@ services:
       REDIS_URL: redis://redis:6379
     ports:
       - "3000:3000"
+    volumes:
+      # Uploaded product photos land in public/uploads at runtime; without
+      # this they'd live only in the container's writable layer and vanish
+      # on the next `docker compose up --build`.
+      - product-uploads:/app/public/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,3 +56,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  product-uploads:

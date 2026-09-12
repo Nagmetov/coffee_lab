@@ -18,7 +18,6 @@ type ProductSeed = {
   tastingNotes: string[];
   tags: string[];
   basePrice: number;
-  images: string[];
   variants: VariantSeed[];
 };
 
@@ -44,7 +43,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["карамель", "фундук", "тёмный шоколад"],
       tags: ["классика", "крепкий"],
       basePrice: 190,
-      images: ["/products/espresso.jpg"],
       variants: drinkVariants("ESP"),
     },
     {
@@ -55,7 +53,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["молочный шоколад", "ваниль"],
       tags: ["молочный", "бестселлер"],
       basePrice: 250,
-      images: ["/products/cappuccino.jpg"],
       variants: drinkVariants("CAP"),
     },
     {
@@ -66,7 +63,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["сливки", "карамель"],
       tags: ["молочный"],
       basePrice: 260,
-      images: ["/products/latte.jpg"],
       variants: drinkVariants("LAT"),
     },
     {
@@ -77,7 +73,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["ваниль", "сливки"],
       tags: ["сезонный", "сладкий"],
       basePrice: 290,
-      images: ["/products/raf.jpg"],
       variants: drinkVariants("RAF"),
     },
     {
@@ -88,7 +83,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["цитрус", "тёмный шоколад"],
       tags: ["классика", "без молока"],
       basePrice: 200,
-      images: ["/products/americano.jpg"],
       variants: drinkVariants("AME"),
     },
     {
@@ -99,7 +93,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["ягоды", "цветочные ноты"],
       tags: ["альтернатива", "лёгкий"],
       basePrice: 230,
-      images: ["/products/filter.jpg"],
       variants: drinkVariants("FIL"),
     },
   ],
@@ -112,7 +105,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["жасмин", "бергамот", "лимон"],
       tags: ["моносорт", "лёгкая обжарка"],
       basePrice: 890,
-      images: ["/products/ethiopia.jpg"],
       variants: beanVariants("ETH"),
     },
     {
@@ -123,7 +115,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["карамель", "орех", "яблоко"],
       tags: ["моносорт", "средняя обжарка"],
       basePrice: 760,
-      images: ["/products/colombia.jpg"],
       variants: beanVariants("COL"),
     },
     {
@@ -134,7 +125,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["тёмный шоколад", "миндаль"],
       tags: ["моносорт", "для эспрессо"],
       basePrice: 690,
-      images: ["/products/brazil.jpg"],
       variants: beanVariants("BRZ"),
     },
     {
@@ -145,7 +135,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["карамель", "тёмный шоколад", "инжир"],
       tags: ["купаж", "фирменный"],
       basePrice: 720,
-      images: ["/products/blend.jpg"],
       variants: beanVariants("BLN"),
     },
   ],
@@ -158,7 +147,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["сливочный сыр", "ваниль"],
       tags: ["бестселлер"],
       basePrice: 320,
-      images: ["/products/cheesecake.jpg"],
       variants: [
         { name: "Порция", priceModifier: 0, stock: 25, sku: "CHK-1", isDefault: true },
       ],
@@ -171,7 +159,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["маскарпоне", "какао", "эспрессо"],
       tags: ["итальянский"],
       basePrice: 310,
-      images: ["/products/tiramisu.jpg"],
       variants: [
         { name: "Порция", priceModifier: 0, stock: 20, sku: "TIR-1", isDefault: true },
       ],
@@ -184,7 +171,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["миндаль", "сливочное масло"],
       tags: ["выпечка", "к завтраку"],
       basePrice: 240,
-      images: ["/products/croissant.jpg"],
       variants: [
         { name: "Штука", priceModifier: 0, stock: 30, sku: "CRO-1", isDefault: true },
       ],
@@ -196,7 +182,6 @@ const catalog: Record<string, ProductSeed[]> = {
       tastingNotes: ["тёмный шоколад", "пекан", "карамель"],
       tags: ["без глютена"],
       basePrice: 260,
-      images: ["/products/brownie.jpg"],
       variants: [
         { name: "Порция", priceModifier: 0, stock: 22, sku: "BRW-1", isDefault: true },
       ],
@@ -252,7 +237,6 @@ async function main() {
           tastingNotes: product.tastingNotes,
           tags: product.tags,
           basePrice: product.basePrice,
-          images: product.images,
           categoryId: category.id,
         },
         create: {
@@ -262,7 +246,6 @@ async function main() {
           tastingNotes: product.tastingNotes,
           tags: product.tags,
           basePrice: product.basePrice,
-          images: product.images,
           categoryId: category.id,
           variants: {
             create: product.variants,
