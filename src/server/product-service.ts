@@ -208,17 +208,10 @@ export async function getRelatedProducts(productId: string, limit = 4) {
   return ranked.map((r) => byId.get(r.id)!).filter(Boolean);
 }
 
-export async function addReview(
-  productId: string,
-  userId: string,
-  input: { rating: number; comment: string },
-) {
-  const review = await prisma.review.create({
-    data: { productId, userId, rating: input.rating, comment: input.comment },
-  });
-
+/** Recompute a product's rating summary from its currently visible reviews. */
+async function recomputeProductRating(productId: string) {
   const agg = await prisma.review.aggregate({
-    where: { productId },
+    where: { productId, isHidden: false },
     _avg: { rating: true },
     _count: true,
   });
@@ -230,7 +223,18 @@ export async function addReview(
       reviewCount: agg._count,
     },
   });
+}
 
+export async function addReview(
+  productId: string,
+  userId: string,
+  input: { rating: number; comment: string },
+) {
+  const review = await prisma.review.create({
+    data: { productId, userId, rating: input.rating, comment: input.comment },
+  });
+
+  await recomputeProductRating(productId);
   await invalidateProductListingCache();
   return review;
 }
@@ -336,5 +340,28 @@ export async function updateProduct(productId: string, input: ProductInput) {
 
 export async function setProductActive(productId: string, isActive: boolean) {
   await prisma.product.update({ where: { id: productId }, data: { isActive } });
+  await invalidateProductListingCache();
+}
+
+export async function adminListReviews() {
+  return prisma.review.findMany({
+    include: {
+      product: { select: { name: true, slug: true } },
+      user: { select: { name: true, email: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function adminSetReviewHidden(reviewId: string, isHidden: boolean) {
+  const review = await prisma.review.update({ where: { id: reviewId }, data: { isHidden } });
+  await recomputeProductRating(review.productId);
+  await invalidateProductListingCache();
+  return review;
+}
+
+export async function adminDeleteReview(reviewId: string) {
+  const review = await prisma.review.delete({ where: { id: reviewId } });
+  await recomputeProductRating(review.productId);
   await invalidateProductListingCache();
 }

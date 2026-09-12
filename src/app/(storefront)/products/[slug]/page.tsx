@@ -35,6 +35,7 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   const hasReviewed = session
     ? product.reviews.some((r) => r.userId === session.sub)
     : false;
+  const visibleReviews = product.reviews.filter((r) => !r.isHidden);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -84,13 +85,13 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
       <section className="mt-16">
         <h2 className="font-heading mb-4 text-2xl font-semibold">Отзывы</h2>
         {session && !hasReviewed && <ReviewForm productSlug={product.slug} />}
-        {product.reviews.length === 0 ? (
+        {visibleReviews.length === 0 ? (
           <p className="text-muted-foreground mt-4 text-sm">
             Пока нет отзывов — станьте первым!
           </p>
         ) : (
           <ul className="mt-4 space-y-4">
-            {product.reviews.map((review) => (
+            {visibleReviews.map((review) => (
               <li key={review.id} className="border-border/70 border-b pb-4">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{review.user.name}</span>
