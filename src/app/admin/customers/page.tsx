@@ -10,13 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
-
-const TIER_LABELS: Record<string, string> = {
-  BRONZE: "Бронза",
-  SILVER: "Серебро",
-  GOLD: "Золото",
-  PLATINUM: "Платина",
-};
+import { LOYALTY_TIER_LABELS } from "@/lib/loyalty";
 
 export default async function AdminCustomersPage({
   searchParams,
@@ -63,7 +57,9 @@ export default async function AdminCustomersPage({
                 <TableCell className="font-tabular">{customer._count.orders}</TableCell>
                 <TableCell className="font-tabular">{customer.loyaltyPoints}</TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{TIER_LABELS[customer.loyaltyTier]}</Badge>
+                  <Badge variant="secondary">
+                    {LOYALTY_TIER_LABELS[customer.loyaltyTier]}
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}

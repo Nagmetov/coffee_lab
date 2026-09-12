@@ -1,5 +1,12 @@
 import type { LoyaltyTier } from "@prisma/client";
 
+export const LOYALTY_TIER_LABELS: Record<LoyaltyTier, string> = {
+  BRONZE: "Бронза",
+  SILVER: "Серебро",
+  GOLD: "Золото",
+  PLATINUM: "Платина",
+};
+
 /** 1 loyalty point per 10 ₽ spent on a completed order, rounded down. */
 export function pointsForOrder(totalAmount: number): number {
   return Math.floor(totalAmount / 10);

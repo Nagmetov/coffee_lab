@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
+import { Prisma } from "@prisma/client";
 
 const STATS_CACHE_KEY = "admin:dashboard-stats";
+const ANALYTICS_CACHE_KEY = "admin:analytics-stats";
 const STATS_CACHE_TTL_SECONDS = 60;
 
 export type DashboardStats = {
@@ -28,7 +30,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function invalidateDashboardStatsCache() {
-  await redis.del(STATS_CACHE_KEY).catch(() => {});
+  await redis.del(STATS_CACHE_KEY, ANALYTICS_CACHE_KEY).catch(() => {});
 }
 
 async function computeDashboardStats(): Promise<DashboardStats> {
@@ -100,5 +102,96 @@ async function computeDashboardStats(): Promise<DashboardStats> {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([name, revenue]) => ({ name, revenue: Math.round(revenue) })),
+  };
+}
+
+export type AnalyticsStats = {
+  revenueByCategory: { category: string; revenue: number }[];
+  loyaltyTierDistribution: { tier: string; count: number }[];
+  topCustomers: { name: string; email: string; orderCount: number; totalSpent: number }[];
+  promotionUsage: {
+    code: string;
+    usedCount: number;
+    usageLimit: number | null;
+    totalDiscount: number;
+  }[];
+};
+
+export async function getAnalyticsStats(): Promise<AnalyticsStats> {
+  const cached = await redis.get(ANALYTICS_CACHE_KEY).catch(() => null);
+  if (cached) return JSON.parse(cached);
+
+  const stats = await computeAnalyticsStats();
+  await redis
+    .set(ANALYTICS_CACHE_KEY, JSON.stringify(stats), "EX", STATS_CACHE_TTL_SECONDS)
+    .catch(() => {});
+  return stats;
+}
+
+async function computeAnalyticsStats(): Promise<AnalyticsStats> {
+  const [revenueByCategoryRaw, tierDistributionRaw, topOrdersByUser, promotions, discountSums] =
+    await Promise.all([
+      // Revenue-by-category needs a join across OrderItem -> ProductVariant
+      // -> Product -> Category, deeper than Prisma's groupBy can express —
+      // hence the raw query, same tradeoff as the full-text search.
+      prisma.$queryRaw<Array<{ category: string; revenue: number }>>`
+        SELECT c.name as category, SUM(oi."unitPrice" * oi.quantity) as revenue
+        FROM "OrderItem" oi
+        JOIN "Order" o ON o.id = oi."orderId"
+        JOIN "ProductVariant" pv ON pv.id = oi."productVariantId"
+        JOIN "Product" p ON p.id = pv."productId"
+        JOIN "Category" c ON c.id = p."categoryId"
+        WHERE o.status::text IN (${Prisma.join(PAID_STATUSES)})
+        GROUP BY c.name
+        ORDER BY revenue DESC
+      `,
+      prisma.user.groupBy({ by: ["loyaltyTier"], _count: true }),
+      prisma.order.groupBy({
+        by: ["userId"],
+        where: { status: { in: [...PAID_STATUSES] } },
+        _sum: { totalAmount: true },
+        _count: true,
+        orderBy: { _sum: { totalAmount: "desc" } },
+        take: 10,
+      }),
+      prisma.promotion.findMany({ orderBy: { usedCount: "desc" } }),
+      prisma.order.groupBy({
+        by: ["promotionId"],
+        where: { promotionId: { not: null } },
+        _sum: { discountAmount: true },
+      }),
+    ]);
+
+  const customers = await prisma.user.findMany({
+    where: { id: { in: topOrdersByUser.map((o) => o.userId) } },
+    select: { id: true, name: true, email: true },
+  });
+  const customerById = new Map(customers.map((c) => [c.id, c]));
+
+  const discountByPromotion = new Map(
+    discountSums.map((d) => [d.promotionId, Number(d._sum.discountAmount ?? 0)]),
+  );
+
+  return {
+    revenueByCategory: revenueByCategoryRaw.map((r) => ({
+      category: r.category,
+      revenue: Math.round(Number(r.revenue)),
+    })),
+    loyaltyTierDistribution: tierDistributionRaw.map((t) => ({
+      tier: t.loyaltyTier,
+      count: t._count,
+    })),
+    topCustomers: topOrdersByUser.map((o) => ({
+      name: customerById.get(o.userId)?.name ?? "—",
+      email: customerById.get(o.userId)?.email ?? "—",
+      orderCount: o._count,
+      totalSpent: Math.round(Number(o._sum.totalAmount ?? 0)),
+    })),
+    promotionUsage: promotions.map((p) => ({
+      code: p.code,
+      usedCount: p.usedCount,
+      usageLimit: p.usageLimit,
+      totalDiscount: Math.round(discountByPromotion.get(p.id) ?? 0),
+    })),
   };
 }

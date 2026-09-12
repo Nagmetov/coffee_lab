@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Users, Tag, Star } from "lucide-react";
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Users,
+  Tag,
+  Star,
+  BarChart3,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const ADMIN_NAV = [
@@ -12,6 +20,7 @@ export const ADMIN_NAV = [
   { href: "/admin/customers", label: "Клиенты", icon: Users },
   { href: "/admin/promotions", label: "Промокоды", icon: Tag },
   { href: "/admin/reviews", label: "Отзывы", icon: Star },
+  { href: "/admin/analytics", label: "Аналитика", icon: BarChart3 },
 ];
 
 export function AdminNavLinks({ onNavigate }: { onNavigate?: () => void }) {

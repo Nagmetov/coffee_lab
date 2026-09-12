@@ -1,17 +1,10 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
-import { nextTierProgress } from "@/lib/loyalty";
+import { nextTierProgress, LOYALTY_TIER_LABELS } from "@/lib/loyalty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-
-const TIER_LABELS: Record<string, string> = {
-  BRONZE: "Бронза",
-  SILVER: "Серебро",
-  GOLD: "Золото",
-  PLATINUM: "Платина",
-};
 
 export default async function ProfilePage() {
   const session = await getSession();
@@ -72,7 +65,7 @@ export default async function ProfilePage() {
               <span className="font-tabular text-2xl font-semibold">
                 {user.loyaltyPoints} баллов
               </span>
-              <Badge>{TIER_LABELS[progress.tier]}</Badge>
+              <Badge>{LOYALTY_TIER_LABELS[progress.tier]}</Badge>
             </div>
             <Progress value={progressPercent} />
             <p className="text-muted-foreground text-sm">
