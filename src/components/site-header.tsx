@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Coffee, ShoppingBag, User } from "lucide-react";
 import { useCurrentUser, useInvalidateCurrentUser } from "@/hooks/use-current-user";
 import { useCart } from "@/hooks/use-cart";
+import { useLocale } from "@/components/locale-provider";
 import { MobileNav } from "@/components/storefront/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,17 +20,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const NAV_LINKS = [
-  { href: "/menu", label: "Меню" },
-  { href: "/about", label: "О нас" },
-  { href: "/contact", label: "Контакты" },
-];
-
 export function SiteHeader() {
   const { data: user, isLoading } = useCurrentUser();
   const { data: cart } = useCart();
   const invalidateUser = useInvalidateCurrentUser();
   const router = useRouter();
+  const { t } = useLocale();
+
+  const navLinks = [
+    { href: "/menu", label: t.nav.menu },
+    { href: "/about", label: t.nav.about },
+    { href: "/contact", label: t.nav.contact },
+  ];
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -49,7 +52,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -62,11 +65,12 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <MobileNav />
+          <LanguageToggle />
           <ThemeToggle />
           <Button
             size="icon"
             variant="ghost"
-            aria-label="Корзина"
+            aria-label={t.nav.cart}
             className="relative"
             nativeButton={false}
             render={<Link href="/cart" />}
@@ -85,14 +89,14 @@ export function SiteHeader() {
               nativeButton={false}
               render={<Link href="/auth/login" />}
             >
-              Войти
+              {t.nav.login}
             </Button>
           )}
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger
                 className={buttonVariants({ size: "icon", variant: "ghost" })}
-                aria-label="Меню профиля"
+                aria-label={t.nav.profile}
               >
                 <User className="size-5" />
               </DropdownMenuTrigger>
@@ -101,19 +105,19 @@ export function SiteHeader() {
                   <DropdownMenuLabel className="truncate">{user.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem render={<Link href="/profile" />}>
-                    Профиль
+                    {t.nav.profile}
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/orders" />}>
-                    Мои заказы
+                    {t.nav.myOrders}
                   </DropdownMenuItem>
                   {user.role === "ADMIN" && (
                     <DropdownMenuItem render={<Link href="/admin" />}>
-                      Админ-панель
+                      {t.nav.admin}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} variant="destructive">
-                    Выйти
+                    {t.nav.logout}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>

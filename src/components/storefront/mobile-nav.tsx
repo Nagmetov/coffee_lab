@@ -12,16 +12,18 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { useCurrentUser } from "@/hooks/use-current-user";
-
-const NAV_LINKS = [
-  { href: "/menu", label: "Меню" },
-  { href: "/about", label: "О нас" },
-  { href: "/contact", label: "Контакты" },
-];
+import { useLocale } from "@/components/locale-provider";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const { data: user } = useCurrentUser();
+  const { t } = useLocale();
+
+  const navLinks = [
+    { href: "/menu", label: t.nav.menu },
+    { href: "/about", label: t.nav.about },
+    { href: "/contact", label: t.nav.contact },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -39,7 +41,7 @@ export function MobileNav() {
           <SheetTitle>CoffeeLab</SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-1 px-4">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <SheetClose
               key={link.href}
               nativeButton={false}
@@ -57,14 +59,14 @@ export function MobileNav() {
                 render={<Link href="/profile" />}
                 className="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-2.5 text-base"
               >
-                <User className="size-4" /> Профиль
+                <User className="size-4" /> {t.nav.profile}
               </SheetClose>
               <SheetClose
                 nativeButton={false}
                 render={<Link href="/orders" />}
                 className="hover:bg-muted rounded-md px-2 py-2.5 text-base"
               >
-                Мои заказы
+                {t.nav.myOrders}
               </SheetClose>
             </>
           ) : (
@@ -73,7 +75,7 @@ export function MobileNav() {
               render={<Link href="/auth/login" />}
               className="hover:bg-muted rounded-md px-2 py-2.5 text-base"
             >
-              Войти
+              {t.nav.login}
             </SheetClose>
           )}
         </nav>

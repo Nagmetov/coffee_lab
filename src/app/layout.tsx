@@ -3,6 +3,8 @@ import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Providers } from "@/components/providers";
+import { LocaleProvider } from "@/components/locale-provider";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,20 +34,25 @@ export const metadata: Metadata = {
     "CoffeeLab — обжарка и кофейня: зерно, эспрессо-напитки и десерты собственного производства. Закажите онлайн с доставкой или заберите в кофейне.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+
   return (
     <html
-      lang="ru"
+      lang={locale}
       className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground flex min-h-full flex-col">
-        <Providers>
-          <TooltipProvider delay={200}>
-            {children}
-            <Toaster richColors position="top-center" />
-          </TooltipProvider>
-        </Providers>
+        <LocaleProvider locale={locale} dict={dict}>
+          <Providers>
+            <TooltipProvider delay={200}>
+              {children}
+              <Toaster richColors position="top-center" />
+            </TooltipProvider>
+          </Providers>
+        </LocaleProvider>
       </body>
     </html>
   );

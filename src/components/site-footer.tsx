@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { Coffee } from "lucide-react";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+
   return (
     <footer className="border-border/70 bg-muted/30 border-t">
       <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm sm:flex-row sm:items-start sm:justify-between">
@@ -11,16 +15,18 @@ export function SiteFooter() {
         </div>
         <nav className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/menu" className="hover:text-foreground">
-            Меню
+            {t.nav.menu}
           </Link>
           <Link href="/about" className="hover:text-foreground">
-            О нас
+            {t.nav.about}
           </Link>
           <Link href="/contact" className="hover:text-foreground">
-            Контакты
+            {t.nav.contact}
           </Link>
         </nav>
-        <p>© {new Date().getFullYear()} CoffeeLab. Все права защищены.</p>
+        <p>
+          © {new Date().getFullYear()} CoffeeLab. {t.footer.rights}
+        </p>
       </div>
     </footer>
   );

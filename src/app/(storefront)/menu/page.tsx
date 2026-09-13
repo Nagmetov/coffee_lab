@@ -1,6 +1,7 @@
 import { listCategories, listProducts } from "@/server/product-service";
 import { MenuFilters } from "@/components/storefront/menu-filters";
 import { ProductCard } from "@/components/storefront/product-card";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 
 export const metadata = { title: "Меню" };
 
@@ -13,20 +14,20 @@ export default async function MenuPage({
   const sort =
     params.sort === "price-asc" || params.sort === "price-desc" ? params.sort : "popular";
 
-  const [categories, products] = await Promise.all([
+  const [locale, categories, products] = await Promise.all([
+    getLocale(),
     listCategories(),
     listProducts({ categorySlug: params.category, search: params.search, sort }),
   ]);
+  const t = getDictionary(locale);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-heading mb-6 text-3xl font-semibold">Меню</h1>
+      <h1 className="font-heading mb-6 text-3xl font-semibold">{t.menu.title}</h1>
       <MenuFilters categories={categories} />
 
       {products.length === 0 ? (
-        <p className="text-muted-foreground mt-16 text-center">
-          Ничего не найдено. Попробуйте другой запрос или категорию.
-        </p>
+        <p className="text-muted-foreground mt-16 text-center">{t.menu.empty}</p>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {products.map((product) => (

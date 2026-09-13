@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { apiJson, ApiError } from "@/lib/api-client";
 import { useInvalidateCurrentUser } from "@/hooks/use-current-user";
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
   const invalidateUser = useInvalidateCurrentUser();
+  const { t } = useLocale();
 
   const {
     register,
@@ -43,13 +45,13 @@ export default function RegisterPage() {
         // No email provider configured — jump straight to the verification
         // link instead of sending the user to check a mailbox that will
         // stay empty.
-        toast.success("Аккаунт создан!", {
-          description: "Демо-режим: письмо не отправляется, открываем ссылку подтверждения.",
+        toast.success(t.auth.register.createdToast, {
+          description: t.auth.register.devModeDesc,
         });
         router.push(result.devVerificationUrl);
       } else {
-        toast.success("Аккаунт создан!", {
-          description: `Письмо со ссылкой подтверждения отправлено на ${values.email}.`,
+        toast.success(t.auth.register.createdToast, {
+          description: `${t.auth.register.emailSentDescPrefix} ${values.email}.`,
         });
         router.push("/");
       }
@@ -72,15 +74,13 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-heading text-2xl">Регистрация</CardTitle>
-        <CardDescription>
-          Копите баллы и следите за заказами в личном кабинете
-        </CardDescription>
+        <CardTitle className="font-heading text-2xl">{t.auth.register.title}</CardTitle>
+        <CardDescription>{t.auth.register.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="name">Имя</Label>
+            <Label htmlFor="name">{t.auth.register.name}</Label>
             <Input
               id="name"
               autoComplete="name"
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t.auth.register.email}</Label>
             <Input
               id="email"
               type="email"
@@ -105,7 +105,7 @@ export default function RegisterPage() {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Пароль</Label>
+            <Label htmlFor="password">{t.auth.register.password}</Label>
             <Input
               id="password"
               type="password"
@@ -116,24 +116,22 @@ export default function RegisterPage() {
             {errors.password && (
               <p className="text-destructive text-sm">{errors.password.message}</p>
             )}
-            <p className="text-muted-foreground text-xs">
-              Минимум 8 символов, буквы и цифры
-            </p>
+            <p className="text-muted-foreground text-xs">{t.auth.register.passwordHint}</p>
           </div>
           {errors.root && (
             <p className="text-destructive text-sm">{errors.root.message}</p>
           )}
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Создаём аккаунт…" : "Зарегистрироваться"}
+            {isSubmitting ? t.auth.register.submitting : t.auth.register.submit}
           </Button>
         </form>
         <p className="text-muted-foreground mt-6 text-center text-sm">
-          Уже есть аккаунт?{" "}
+          {t.auth.register.haveAccount}{" "}
           <Link
             href="/auth/login"
             className="text-foreground font-medium hover:underline"
           >
-            Войти
+            {t.auth.register.loginLink}
           </Link>
         </p>
       </CardContent>

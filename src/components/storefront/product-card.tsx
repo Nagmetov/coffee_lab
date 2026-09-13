@@ -3,9 +3,13 @@ import { Star } from "lucide-react";
 import { ProductThumb } from "@/components/storefront/product-thumb";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/format";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 import type { ProductListItem } from "@/server/product-service";
 
-export function ProductCard({ product }: { product: ProductListItem }) {
+export async function ProductCard({ product }: { product: ProductListItem }) {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -24,7 +28,7 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           </h3>
           {!product.inStock && (
             <Badge variant="outline" className="shrink-0">
-              Нет в наличии
+              {t.product.outOfStock}
             </Badge>
           )}
         </div>

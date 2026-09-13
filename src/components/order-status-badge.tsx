@@ -30,11 +30,18 @@ const STATUS_META: Record<OrderStatus, { label: string; className: string }> = {
   },
 };
 
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
+export function OrderStatusBadge({
+  status,
+  label,
+}: {
+  status: OrderStatus;
+  /** Overrides the (Russian-only) default label — used to show it in the active locale. */
+  label?: string;
+}) {
   const meta = STATUS_META[status];
   return (
     <Badge variant="outline" className={cn("border", meta.className)}>
-      {meta.label}
+      {label ?? meta.label}
     </Badge>
   );
 }

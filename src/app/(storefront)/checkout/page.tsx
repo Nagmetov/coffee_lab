@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
 import { apiJson, ApiError } from "@/lib/api-client";
+import { useLocale } from "@/components/locale-provider";
 
 type Address = {
   id: string;
@@ -29,6 +30,7 @@ function CheckoutForm() {
   const promoFromUrl = useSearchParams().get("promo");
   const { data: cart, isLoading } = useCart();
   const queryClient = useQueryClient();
+  const { t } = useLocale();
 
   const [fulfillmentType, setFulfillmentType] = useState<"PICKUP" | "DELIVERY">("PICKUP");
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -77,10 +79,10 @@ function CheckoutForm() {
         body: JSON.stringify({ code: promoCode }),
       });
       setPromoResult(result);
-      toast.success("Промокод применён");
+      toast.success(t.cart.promoAppliedToast);
     } catch (error) {
       setPromoResult(null);
-      toast.error(error instanceof ApiError ? error.message : "Промокод недействителен");
+      toast.error(error instanceof ApiError ? error.message : t.cart.promoInvalidToast);
     } finally {
       setIsApplyingPromo(false);
     }
@@ -98,7 +100,7 @@ function CheckoutForm() {
       setShowNewAddress(false);
     } catch (error) {
       toast.error(
-        error instanceof ApiError ? error.message : "Не удалось сохранить адрес",
+        error instanceof ApiError ? error.message : t.checkout.addressSaveErrorToast,
       );
     }
   }
@@ -119,13 +121,11 @@ function CheckoutForm() {
           }),
         },
       );
-      toast.success(`Заказ ${data.order.orderNumber} оформлен!`);
+      toast.success(`${data.order.orderNumber} ${t.checkout.orderPlacedToast}`);
       queryClient.setQueryData(["cart"], { items: [], subtotal: 0, itemCount: 0 });
       router.push(`/orders/${data.order.id}`);
     } catch (error) {
-      toast.error(
-        error instanceof ApiError ? error.message : "Не удалось оформить заказ",
-      );
+      toast.error(error instanceof ApiError ? error.message : t.checkout.orderErrorToast);
     } finally {
       setIsSubmitting(false);
     }
@@ -136,7 +136,7 @@ function CheckoutForm() {
   }
 
   if (!cart || cart.items.length === 0) {
-    return <p className="text-muted-foreground">Корзина пуста.</p>;
+    return <p className="text-muted-foreground">{t.checkout.cartEmpty}</p>;
   }
 
   const total = promoResult ? promoResult.totalAmount : cart.subtotal;
@@ -147,7 +147,7 @@ function CheckoutForm() {
     <div className="grid gap-8 sm:grid-cols-[1.5fr_1fr]">
       <div className="space-y-6">
         <div>
-          <h2 className="mb-3 font-medium">Способ получения</h2>
+          <h2 className="mb-3 font-medium">{t.checkout.fulfillmentTitle}</h2>
           <div className="flex gap-2">
             {(["PICKUP", "DELIVERY"] as const).map((type) => (
               <button
@@ -160,7 +160,7 @@ function CheckoutForm() {
                     : "border-border bg-background hover:bg-muted"
                 }`}
               >
-                {type === "PICKUP" ? "Самовывоз" : "Доставка"}
+                {type === "PICKUP" ? t.checkout.pickup : t.checkout.delivery}
               </button>
             ))}
           </div>
@@ -168,7 +168,7 @@ function CheckoutForm() {
 
         {fulfillmentType === "DELIVERY" && (
           <div className="space-y-3">
-            <h2 className="font-medium">Адрес доставки</h2>
+            <h2 className="font-medium">{t.checkout.addressTitle}</h2>
             {addresses.map((address) => (
               <label
                 key={address.id}
@@ -196,14 +196,14 @@ function CheckoutForm() {
             {showNewAddress ? (
               <div className="border-border space-y-2 rounded-lg border p-3">
                 <Input
-                  placeholder="Название (например, Дом)"
+                  placeholder={t.checkout.labelPlaceholder}
                   value={newAddress.label}
                   onChange={(e) =>
                     setNewAddress((a) => ({ ...a, label: e.target.value }))
                   }
                 />
                 <Input
-                  placeholder="Улица, дом, квартира"
+                  placeholder={t.checkout.linePlaceholder}
                   value={newAddress.line1}
                   onChange={(e) =>
                     setNewAddress((a) => ({ ...a, line1: e.target.value }))
@@ -211,14 +211,14 @@ function CheckoutForm() {
                 />
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Город"
+                    placeholder={t.checkout.cityPlaceholder}
                     value={newAddress.city}
                     onChange={(e) =>
                       setNewAddress((a) => ({ ...a, city: e.target.value }))
                     }
                   />
                   <Input
-                    placeholder="Индекс"
+                    placeholder={t.checkout.postalPlaceholder}
                     value={newAddress.postalCode}
                     onChange={(e) =>
                       setNewAddress((a) => ({ ...a, postalCode: e.target.value }))
@@ -226,14 +226,14 @@ function CheckoutForm() {
                   />
                 </div>
                 <Input
-                  placeholder="Телефон"
+                  placeholder={t.checkout.phonePlaceholder}
                   value={newAddress.phone}
                   onChange={(e) =>
                     setNewAddress((a) => ({ ...a, phone: e.target.value }))
                   }
                 />
                 <Button type="button" size="sm" onClick={handleAddAddress}>
-                  Сохранить адрес
+                  {t.checkout.saveAddress}
                 </Button>
               </div>
             ) : (
@@ -243,7 +243,7 @@ function CheckoutForm() {
                 size="sm"
                 onClick={() => setShowNewAddress(true)}
               >
-                Добавить новый адрес
+                {t.checkout.addNewAddress}
               </Button>
             )}
           </div>
@@ -251,11 +251,11 @@ function CheckoutForm() {
 
         <div>
           <Label htmlFor="note" className="mb-2 block font-medium">
-            Комментарий к заказу
+            {t.checkout.noteTitle}
           </Label>
           <Textarea
             id="note"
-            placeholder="Например: без сахара"
+            placeholder={t.checkout.notePlaceholder}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -263,7 +263,7 @@ function CheckoutForm() {
       </div>
 
       <div className="border-border/70 h-fit space-y-4 rounded-lg border p-4">
-        <h2 className="font-medium">Ваш заказ</h2>
+        <h2 className="font-medium">{t.checkout.yourOrder}</h2>
         <ul className="space-y-1 text-sm">
           {cart.items.map((item) => (
             <li key={item.variantId} className="flex justify-between">
@@ -276,7 +276,7 @@ function CheckoutForm() {
         </ul>
         <div className="border-border/70 flex gap-2 border-t pt-3">
           <Input
-            placeholder="Промокод"
+            placeholder={t.checkout.promoPlaceholder}
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value)}
           />
@@ -287,24 +287,26 @@ function CheckoutForm() {
             onClick={applyPromo}
             disabled={isApplyingPromo}
           >
-            Применить
+            {t.checkout.apply}
           </Button>
         </div>
         <div className="border-border/70 space-y-1 border-t pt-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Сумма</span>
+            <span className="text-muted-foreground">{t.checkout.sum}</span>
             <span className="font-tabular">{formatPrice(cart.subtotal)}</span>
           </div>
           {promoResult && (
             <div className="text-success flex justify-between">
-              <span>Скидка ({promoResult.code})</span>
+              <span>
+                {t.checkout.discount} ({promoResult.code})
+              </span>
               <span className="font-tabular">
                 −{formatPrice(promoResult.discountAmount)}
               </span>
             </div>
           )}
           <div className="flex justify-between text-base font-semibold">
-            <span>Итого</span>
+            <span>{t.checkout.total}</span>
             <span className="font-tabular">{formatPrice(total)}</span>
           </div>
         </div>
@@ -314,7 +316,7 @@ function CheckoutForm() {
           disabled={!canSubmit || isSubmitting}
           onClick={handleSubmit}
         >
-          {isSubmitting ? "Оформляем…" : "Подтвердить заказ"}
+          {isSubmitting ? t.checkout.confirming : t.checkout.confirm}
         </Button>
       </div>
     </div>
@@ -322,9 +324,10 @@ function CheckoutForm() {
 }
 
 export default function CheckoutPage() {
+  const { t } = useLocale();
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="font-heading mb-6 text-3xl font-semibold">Оформление заказа</h1>
+      <h1 className="font-heading mb-6 text-3xl font-semibold">{t.checkout.title}</h1>
       <Suspense>
         <CheckoutForm />
       </Suspense>

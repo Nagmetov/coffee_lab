@@ -3,6 +3,7 @@ import { Coffee, Cookie, Flame, Gift, Package, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/storefront/product-card";
 import { listCategories, listProducts } from "@/server/product-service";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 
 // Without this the page has no dynamic API call in its body, so Next
 // prerenders it once at build time and "Популярное"/"Категории" would
@@ -10,57 +11,42 @@ import { listCategories, listProducts } from "@/server/product-service";
 // listing cache's own TTL instead of statically freezing it forever.
 export const revalidate = 60;
 
-const FEATURES = [
-  {
-    icon: Flame,
-    title: "Своя обжарка",
-    description:
-      "Закупаем зелёное зерно напрямую у кооперативов и обжариваем небольшими партиями каждую неделю.",
-  },
-  {
-    icon: Timer,
-    title: "Свежая выпечка",
-    description:
-      "Десерты готовятся на месте нашими кондитерами каждое утро — без полуфабрикатов.",
-  },
-  {
-    icon: Gift,
-    title: "Бонусная программа",
-    description:
-      "1 балл за каждые 10 ₽ заказа. Бронза, серебро, золото, платина — чем больше заказов, тем выше уровень.",
-  },
-];
-
-const CATEGORY_META: Record<string, { icon: typeof Coffee; description: string }> = {
-  napitki: { icon: Coffee, description: "Эспрессо, капучино, латте, раф и фильтр-кофе" },
-  zerno: { icon: Package, description: "Моносорта и купажи собственной обжарки" },
-  deserty: { icon: Cookie, description: "Выпечка и десерты, приготовленные на месте" },
+const CATEGORY_ICONS: Record<string, typeof Coffee> = {
+  napitki: Coffee,
+  zerno: Package,
+  deserty: Cookie,
 };
 
 export default async function HomePage() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
+
   const [categories, popular] = await Promise.all([
     listCategories(),
     listProducts({ sort: "popular" }),
   ]);
 
+  const features = [
+    { icon: Flame, ...t.home.features.roast },
+    { icon: Timer, ...t.home.features.pastry },
+    { icon: Gift, ...t.home.features.loyalty },
+  ];
+
   return (
     <>
       <section className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 py-24">
         <h1 className="font-heading text-4xl font-semibold text-balance sm:text-5xl">
-          CoffeeLab — обжарка и кофейня
+          {t.home.title}
         </h1>
-        <p className="text-muted-foreground max-w-xl text-lg">
-          Зерно собственной обжарки, эспрессо-напитки и десерты. Закажите онлайн с доставкой
-          или заберите в кофейне.
-        </p>
+        <p className="text-muted-foreground max-w-xl text-lg">{t.home.subtitle}</p>
         <Button size="lg" nativeButton={false} render={<Link href="/menu" />}>
-          Смотреть меню
+          {t.home.cta}
         </Button>
       </section>
 
       <section className="border-border/70 bg-muted/30 border-y">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:grid-cols-3">
-          {FEATURES.map((feature) => (
+          {features.map((feature) => (
             <div key={feature.title} className="flex flex-col gap-3">
               <feature.icon className="text-primary size-6" strokeWidth={1.5} aria-hidden />
               <h2 className="font-heading text-lg font-semibold">{feature.title}</h2>
@@ -72,11 +58,16 @@ export default async function HomePage() {
 
       {categories.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="font-heading mb-6 text-2xl font-semibold">Категории</h2>
+          <h2 className="font-heading mb-6 text-2xl font-semibold">
+            {t.home.categoriesTitle}
+          </h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {categories.map((category) => {
-              const meta = CATEGORY_META[category.slug];
-              const Icon = meta?.icon ?? Coffee;
+              const description =
+                t.home.categoryDescriptions[
+                  category.slug as keyof typeof t.home.categoryDescriptions
+                ] ?? t.home.categoryFallback;
+              const Icon = CATEGORY_ICONS[category.slug] ?? Coffee;
               return (
                 <Link
                   key={category.id}
@@ -89,9 +80,7 @@ export default async function HomePage() {
                     aria-hidden
                   />
                   <h3 className="font-medium group-hover:underline">{category.name}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {meta?.description ?? "Смотреть в меню"}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{description}</p>
                 </Link>
               );
             })}
@@ -102,12 +91,12 @@ export default async function HomePage() {
       {popular.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="font-heading text-2xl font-semibold">Популярное</h2>
+            <h2 className="font-heading text-2xl font-semibold">{t.home.popularTitle}</h2>
             <Link
               href="/menu"
               className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
             >
-              Всё меню →
+              {t.home.viewAllMenu}
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -121,11 +110,8 @@ export default async function HomePage() {
       <section className="border-border/70 border-t">
         <div className="mx-auto flex max-w-6xl flex-col items-start gap-4 px-4 py-16 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-heading text-2xl font-semibold">О кофейне</h2>
-            <p className="text-muted-foreground mt-2 max-w-lg">
-              Небольшая обжарочная студия: сезонные моносорта, стабильные купажи и десерты
-              без полуфабрикатов.
-            </p>
+            <h2 className="font-heading text-2xl font-semibold">{t.home.aboutTitle}</h2>
+            <p className="text-muted-foreground mt-2 max-w-lg">{t.home.aboutText}</p>
           </div>
           <Button
             variant="outline"
@@ -133,7 +119,7 @@ export default async function HomePage() {
             nativeButton={false}
             render={<Link href="/about" />}
           >
-            Узнать больше
+            {t.home.aboutCta}
           </Button>
         </div>
       </section>

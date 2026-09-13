@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
-import { nextTierProgress, LOYALTY_TIER_LABELS } from "@/lib/loyalty";
+import { nextTierProgress } from "@/lib/loyalty";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -12,10 +13,14 @@ export default async function ProfilePage() {
     redirect("/auth/login?next=/profile");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.sub } });
+  const [user, locale] = await Promise.all([
+    prisma.user.findUnique({ where: { id: session.sub } }),
+    getLocale(),
+  ]);
   if (!user) {
     redirect("/auth/login?next=/profile");
   }
+  const t = getDictionary(locale);
 
   const progress = nextTierProgress(user.loyaltyPoints);
   const progressPercent = progress.pointsToNext
@@ -29,28 +34,28 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="font-heading mb-8 text-3xl font-semibold">Профиль</h1>
+      <h1 className="font-heading mb-8 text-3xl font-semibold">{t.profile.title}</h1>
 
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Аккаунт</CardTitle>
+            <CardTitle className="text-base">{t.profile.accountTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Имя</span>
+              <span className="text-muted-foreground">{t.profile.name}</span>
               <span className="font-medium">{user.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Email</span>
+              <span className="text-muted-foreground">{t.profile.email}</span>
               <span className="font-medium">{user.email}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Статус email</span>
+              <span className="text-muted-foreground">{t.profile.emailStatus}</span>
               {user.emailVerified ? (
-                <Badge variant="secondary">Подтверждён</Badge>
+                <Badge variant="secondary">{t.profile.verified}</Badge>
               ) : (
-                <Badge variant="outline">Не подтверждён</Badge>
+                <Badge variant="outline">{t.profile.notVerified}</Badge>
               )}
             </div>
           </CardContent>
@@ -58,20 +63,20 @@ export default async function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Программа лояльности</CardTitle>
+            <CardTitle className="text-base">{t.profile.loyaltyTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-tabular text-2xl font-semibold">
-                {user.loyaltyPoints} баллов
+                {user.loyaltyPoints} {t.profile.pointsSuffix}
               </span>
-              <Badge>{LOYALTY_TIER_LABELS[progress.tier]}</Badge>
+              <Badge>{t.profile.tiers[progress.tier]}</Badge>
             </div>
             <Progress value={progressPercent} />
             <p className="text-muted-foreground text-sm">
               {progress.pointsToNext
-                ? `Ещё ${progress.pointsToNext} баллов до следующего уровня`
-                : "Вы достигли максимального уровня"}
+                ? `${t.profile.pointsToNextPrefix} ${progress.pointsToNext} ${t.profile.pointsToNextSuffix}`.trim()
+                : t.profile.maxTierReached}
             </p>
           </CardContent>
         </Card>

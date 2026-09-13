@@ -5,6 +5,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiJson } from "@/lib/api-client";
 import { useInvalidateCurrentUser } from "@/hooks/use-current-user";
+import { useLocale } from "@/components/locale-provider";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ type Status = "loading" | "success" | "error";
 function VerifyEmailBody() {
   const token = useSearchParams().get("token");
   const invalidateUser = useInvalidateCurrentUser();
+  const { t } = useLocale();
   const [status, setStatus] = useState<Status>(token ? "loading" : "error");
   const requestedFor = useRef<string | null>(null);
 
@@ -41,7 +43,7 @@ function VerifyEmailBody() {
     return (
       <div className="text-muted-foreground flex flex-col items-center gap-3 py-6">
         <Loader2 className="size-6 animate-spin" aria-hidden />
-        <p>Подтверждаем email…</p>
+        <p>{t.auth.verifyEmail.loading}</p>
       </div>
     );
   }
@@ -50,9 +52,9 @@ function VerifyEmailBody() {
     return (
       <div className="flex flex-col items-center gap-3 py-6 text-center">
         <CheckCircle2 className="text-success size-8" aria-hidden />
-        <p>Email подтверждён. Спасибо!</p>
+        <p>{t.auth.verifyEmail.success}</p>
         <Link href="/" className="text-foreground text-sm font-medium hover:underline">
-          Вернуться на главную
+          {t.auth.verifyEmail.backHome}
         </Link>
       </div>
     );
@@ -61,20 +63,23 @@ function VerifyEmailBody() {
   return (
     <div className="flex flex-col items-center gap-3 py-6 text-center">
       <XCircle className="text-destructive size-8" aria-hidden />
-      <p>Ссылка недействительна или уже была использована.</p>
+      <p>{t.auth.verifyEmail.error}</p>
       <Link href="/" className="text-foreground text-sm font-medium hover:underline">
-        На главную
+        {t.auth.verifyEmail.toHome}
       </Link>
     </div>
   );
 }
 
 export default function VerifyEmailPage() {
+  const { t } = useLocale();
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-heading text-2xl">Подтверждение email</CardTitle>
-        <CardDescription>Один шаг до полного доступа к бонусам</CardDescription>
+        <CardTitle className="font-heading text-2xl">
+          {t.auth.verifyEmail.title}
+        </CardTitle>
+        <CardDescription>{t.auth.verifyEmail.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <Suspense>

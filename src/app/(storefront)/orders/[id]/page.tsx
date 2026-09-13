@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { getOrderForUser } from "@/server/order-service";
-import { OrderStatusBadge, STATUS_META } from "@/components/order-status-badge";
+import { OrderStatusBadge } from "@/components/order-status-badge";
 import { formatDate, formatPrice } from "@/lib/format";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +18,12 @@ export default async function OrderDetailPage({
   if (!session) redirect("/auth/login");
 
   const { id } = await params;
-  const order = await getOrderForUser(id, session.sub);
+  const [order, locale] = await Promise.all([
+    getOrderForUser(id, session.sub),
+    getLocale(),
+  ]);
   if (!order) notFound();
+  const t = getDictionary(locale);
 
   const reachedStatuses = new Set(order.statusHistory.map((h) => h.toStatus));
   const isCancelled = order.status === "CANCELLED";
@@ -30,7 +35,7 @@ export default async function OrderDetailPage({
           <h1 className="font-heading text-2xl font-semibold">{order.orderNumber}</h1>
           <p className="text-muted-foreground text-sm">{formatDate(order.createdAt)}</p>
         </div>
-        <OrderStatusBadge status={order.status} />
+        <OrderStatusBadge status={order.status} label={t.orderStatus[order.status]} />
       </div>
 
       {!isCancelled && (
@@ -56,7 +61,7 @@ export default async function OrderDetailPage({
                       reached ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
-                    {STATUS_META[status].label}
+                    {t.orderStatus[status]}
                   </span>
                 </div>
                 {i < TIMELINE_STATUSES.length - 1 && (
@@ -88,19 +93,22 @@ export default async function OrderDetailPage({
         </ul>
         <div className="border-border/70 space-y-1 border-t pt-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Сумма</span>
+            <span className="text-muted-foreground">{t.orderDetail.sum}</span>
             <span className="font-tabular">{formatPrice(order.subtotal.toString())}</span>
           </div>
           {Number(order.discountAmount) > 0 && (
             <div className="text-success flex justify-between">
-              <span>Скидка{order.promotion ? ` (${order.promotion.code})` : ""}</span>
+              <span>
+                {t.orderDetail.discount}
+                {order.promotion ? ` (${order.promotion.code})` : ""}
+              </span>
               <span className="font-tabular">
                 −{formatPrice(order.discountAmount.toString())}
               </span>
             </div>
           )}
           <div className="flex justify-between text-base font-semibold">
-            <span>Итого</span>
+            <span>{t.orderDetail.total}</span>
             <span className="font-tabular">
               {formatPrice(order.totalAmount.toString())}
             </span>
@@ -108,12 +116,13 @@ export default async function OrderDetailPage({
         </div>
         {order.loyaltyPointsEarned > 0 && (
           <p className="text-muted-foreground text-sm">
-            Начислено {order.loyaltyPointsEarned} баллов лояльности
+            {t.orderDetail.loyaltyEarnedPrefix} {order.loyaltyPointsEarned}{" "}
+            {t.orderDetail.loyaltyEarnedSuffix}
           </p>
         )}
         {order.fulfillmentType === "DELIVERY" && order.address && (
           <div className="border-border/70 border-t pt-3 text-sm">
-            <p className="font-medium">Доставка</p>
+            <p className="font-medium">{t.orderDetail.delivery}</p>
             <p className="text-muted-foreground">
               {order.address.line1}, {order.address.city}, {order.address.postalCode}
             </p>
@@ -121,7 +130,7 @@ export default async function OrderDetailPage({
         )}
         {order.note && (
           <div className="border-border/70 border-t pt-3 text-sm">
-            <p className="font-medium">Комментарий</p>
+            <p className="font-medium">{t.orderDetail.comment}</p>
             <p className="text-muted-foreground">{order.note}</p>
           </div>
         )}

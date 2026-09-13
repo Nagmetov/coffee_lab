@@ -8,6 +8,7 @@ import { ReviewForm } from "@/components/storefront/review-form";
 import { ProductCard } from "@/components/storefront/product-card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
+import { getLocale, getDictionary } from "@/i18n/dictionary";
 import type { Metadata } from "next";
 
 type Params = { slug: string };
@@ -27,10 +28,12 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [related, session] = await Promise.all([
+  const [related, session, locale] = await Promise.all([
     getRelatedProducts(product.id),
     getSession(),
+    getLocale(),
   ]);
+  const t = getDictionary(locale);
 
   const hasReviewed = session
     ? product.reviews.some((r) => r.userId === session.sub)
@@ -54,7 +57,8 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
             {product.reviewCount > 0 && (
               <div className="text-muted-foreground mt-1 flex items-center gap-1 text-sm">
                 <Star className="fill-warning text-warning size-4" aria-hidden />
-                {Number(product.avgRating).toFixed(1)} · {product.reviewCount} отзывов
+                {Number(product.avgRating).toFixed(1)} · {product.reviewCount}{" "}
+                {t.product.reviewsCountSuffix}
               </div>
             )}
           </div>
@@ -84,12 +88,10 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
       </div>
 
       <section className="mt-16">
-        <h2 className="font-heading mb-4 text-2xl font-semibold">Отзывы</h2>
+        <h2 className="font-heading mb-4 text-2xl font-semibold">{t.product.reviewsTitle}</h2>
         {session && !hasReviewed && <ReviewForm productSlug={product.slug} />}
         {visibleReviews.length === 0 ? (
-          <p className="text-muted-foreground mt-4 text-sm">
-            Пока нет отзывов — станьте первым!
-          </p>
+          <p className="text-muted-foreground mt-4 text-sm">{t.product.noReviews}</p>
         ) : (
           <ul className="mt-4 space-y-4">
             {visibleReviews.map((review) => (
@@ -117,7 +119,9 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
 
       {related.length > 0 && (
         <section className="mt-16">
-          <h2 className="font-heading mb-4 text-2xl font-semibold">Похожие товары</h2>
+          <h2 className="font-heading mb-4 text-2xl font-semibold">
+            {t.product.relatedTitle}
+          </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {related.map((r) => (
               <ProductCard

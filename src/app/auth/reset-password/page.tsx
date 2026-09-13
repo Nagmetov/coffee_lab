@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { resetPasswordSchema } from "@/lib/validation/auth";
 import { z } from "zod";
 import { apiJson, ApiError } from "@/lib/api-client";
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ type FormValues = z.infer<typeof resetPasswordSchema>;
 function ResetPasswordForm() {
   const router = useRouter();
   const token = useSearchParams().get("token") ?? "";
+  const { t } = useLocale();
 
   const {
     register,
@@ -43,7 +45,7 @@ function ResetPasswordForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      toast.success("Пароль обновлён, войдите заново");
+      toast.success(t.auth.resetPassword.successToast);
       router.push("/auth/login");
     } catch (error) {
       if (error instanceof ApiError) {
@@ -54,9 +56,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <p className="text-destructive text-sm">
-        Ссылка недействительна: отсутствует токен.
-      </p>
+      <p className="text-destructive text-sm">{t.auth.resetPassword.invalidLink}</p>
     );
   }
 
@@ -64,7 +64,7 @@ function ResetPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <input type="hidden" {...register("token")} />
       <div className="space-y-2">
-        <Label htmlFor="password">Новый пароль</Label>
+        <Label htmlFor="password">{t.auth.resetPassword.newPassword}</Label>
         <Input
           id="password"
           type="password"
@@ -78,18 +78,21 @@ function ResetPasswordForm() {
       </div>
       {errors.root && <p className="text-destructive text-sm">{errors.root.message}</p>}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Сохраняем…" : "Сохранить пароль"}
+        {isSubmitting ? t.auth.resetPassword.submitting : t.auth.resetPassword.submit}
       </Button>
     </form>
   );
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useLocale();
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-heading text-2xl">Новый пароль</CardTitle>
-        <CardDescription>Придумайте новый пароль для входа</CardDescription>
+        <CardTitle className="font-heading text-2xl">
+          {t.auth.resetPassword.title}
+        </CardTitle>
+        <CardDescription>{t.auth.resetPassword.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <Suspense>
@@ -100,7 +103,7 @@ export default function ResetPasswordPage() {
             href="/auth/login"
             className="text-foreground font-medium hover:underline"
           >
-            Вернуться ко входу
+            {t.auth.resetPassword.backToLogin}
           </Link>
         </p>
       </CardContent>

@@ -11,10 +11,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductThumb } from "@/components/storefront/product-thumb";
 import { formatPrice } from "@/lib/format";
 import { apiJson, ApiError } from "@/lib/api-client";
+import { useLocale } from "@/components/locale-provider";
 
 export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const updateItem = useUpdateCartItem();
+  const { t } = useLocale();
   const [promoCode, setPromoCode] = useState("");
   const [promoResult, setPromoResult] = useState<{
     code: string;
@@ -37,10 +39,10 @@ export default function CartPage() {
         body: JSON.stringify({ code: promoCode }),
       });
       setPromoResult(result);
-      toast.success("Промокод применён");
+      toast.success(t.cart.promoAppliedToast);
     } catch (error) {
       setPromoResult(null);
-      toast.error(error instanceof ApiError ? error.message : "Промокод недействителен");
+      toast.error(error instanceof ApiError ? error.message : t.cart.promoInvalidToast);
     } finally {
       setIsApplyingPromo(false);
     }
@@ -60,10 +62,10 @@ export default function CartPage() {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-24 text-center">
         <ShoppingBag className="text-muted-foreground size-10" aria-hidden />
-        <h1 className="font-heading text-2xl font-semibold">Корзина пуста</h1>
-        <p className="text-muted-foreground">Добавьте что-нибудь вкусное из меню</p>
+        <h1 className="font-heading text-2xl font-semibold">{t.cart.empty}</h1>
+        <p className="text-muted-foreground">{t.cart.emptyHint}</p>
         <Button render={<Link href="/menu" />} nativeButton={false}>
-          Перейти в меню
+          {t.cart.goToMenu}
         </Button>
       </div>
     );
@@ -73,7 +75,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="font-heading mb-6 text-3xl font-semibold">Корзина</h1>
+      <h1 className="font-heading mb-6 text-3xl font-semibold">{t.cart.title}</h1>
 
       <ul className="space-y-4">
         {cart.items.map((item) => (
@@ -100,7 +102,7 @@ export default function CartPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Уменьшить количество"
+                aria-label={t.cart.decreaseQty}
                 onClick={() =>
                   updateItem.mutate({
                     variantId: item.variantId,
@@ -116,7 +118,7 @@ export default function CartPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Увеличить количество"
+                aria-label={t.cart.increaseQty}
                 disabled={item.quantity >= item.stock}
                 onClick={() =>
                   updateItem.mutate({
@@ -134,7 +136,7 @@ export default function CartPage() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Удалить товар"
+              aria-label={t.cart.remove}
               onClick={() =>
                 updateItem.mutate({ variantId: item.variantId, quantity: 0 })
               }
@@ -148,30 +150,32 @@ export default function CartPage() {
       <div className="border-border/70 mt-8 space-y-4 rounded-lg border p-4">
         <div className="flex gap-2">
           <Input
-            placeholder="Промокод"
+            placeholder={t.cart.promoPlaceholder}
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value)}
           />
           <Button variant="outline" onClick={applyPromo} disabled={isApplyingPromo}>
-            Применить
+            {t.cart.apply}
           </Button>
         </div>
 
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Сумма</span>
+            <span className="text-muted-foreground">{t.cart.sum}</span>
             <span className="font-tabular">{formatPrice(cart.subtotal)}</span>
           </div>
           {promoResult && (
             <div className="text-success flex justify-between">
-              <span>Скидка ({promoResult.code})</span>
+              <span>
+                {t.cart.discount} ({promoResult.code})
+              </span>
               <span className="font-tabular">
                 −{formatPrice(promoResult.discountAmount)}
               </span>
             </div>
           )}
           <div className="flex justify-between text-base font-semibold">
-            <span>Итого</span>
+            <span>{t.cart.total}</span>
             <span className="font-tabular">{formatPrice(total)}</span>
           </div>
         </div>
@@ -186,7 +190,7 @@ export default function CartPage() {
             />
           }
         >
-          Оформить заказ
+          {t.cart.checkout}
         </Button>
       </div>
     </div>

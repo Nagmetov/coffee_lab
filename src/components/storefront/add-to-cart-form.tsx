@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { apiJson, ApiError } from "@/lib/api-client";
 import { formatPrice } from "@/lib/format";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocale } from "@/components/locale-provider";
 
 type Variant = {
   id: string;
@@ -28,6 +29,7 @@ export function AddToCartForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useLocale();
 
   const selected = variants.find((v) => v.id === variantId) ?? variants[0];
   const unitPrice = Number(basePrice) + Number(selected?.priceModifier ?? 0);
@@ -42,13 +44,11 @@ export function AddToCartForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId: selected.id, quantity }),
       });
-      toast.success("Добавлено в корзину");
+      toast.success(t.product.addedToast);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof ApiError ? error.message : "Не удалось добавить в корзину",
-      );
+      toast.error(error instanceof ApiError ? error.message : t.product.addErrorToast);
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +78,9 @@ export function AddToCartForm({
         <span className="font-tabular text-2xl font-semibold">
           {formatPrice(unitPrice)}
         </span>
-        {outOfStock && <span className="text-destructive text-sm">Нет в наличии</span>}
+        {outOfStock && (
+          <span className="text-destructive text-sm">{t.product.outOfStock}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
@@ -87,7 +89,7 @@ export function AddToCartForm({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Уменьшить количество"
+            aria-label={t.product.decreaseQty}
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
           >
             <Minus className="size-4" />
@@ -97,7 +99,7 @@ export function AddToCartForm({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Увеличить количество"
+            aria-label={t.product.increaseQty}
             onClick={() => setQuantity((q) => Math.min(selected?.stock ?? 1, q + 1))}
           >
             <Plus className="size-4" />
@@ -109,7 +111,7 @@ export function AddToCartForm({
           onClick={handleAdd}
         >
           <ShoppingBag className="size-4" />
-          {isSubmitting ? "Добавляем…" : "В корзину"}
+          {isSubmitting ? t.product.adding : t.product.addToCart}
         </Button>
       </div>
     </div>

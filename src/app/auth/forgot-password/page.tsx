@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "@/lib/validation/auth";
 import { z } from "zod";
 import { apiJson } from "@/lib/api-client";
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ import {
 type FormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  const { t } = useLocale();
   const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
   const {
     register,
@@ -40,23 +42,20 @@ export default function ForgotPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-heading text-2xl">Сброс пароля</CardTitle>
-        <CardDescription>
-          Укажите email — пришлём ссылку для сброса пароля
-        </CardDescription>
+        <CardTitle className="font-heading text-2xl">
+          {t.auth.forgotPassword.title}
+        </CardTitle>
+        <CardDescription>{t.auth.forgotPassword.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         {isSubmitSuccessful ? (
           <div className="space-y-4 text-sm">
-            <p>
-              Если аккаунт с этим email существует, на него отправлена ссылка для сброса
-              пароля.
-            </p>
+            <p>{t.auth.forgotPassword.successText}</p>
             {devResetUrl && (
               <p className="bg-muted text-muted-foreground rounded-md p-3 text-xs">
-                Демо-режим (без почтового провайдера):{" "}
+                {t.auth.forgotPassword.devModeLabel}{" "}
                 <Link href={devResetUrl} className="text-foreground underline">
-                  открыть ссылку сброса
+                  {t.auth.forgotPassword.openLink}
                 </Link>
               </p>
             )}
@@ -64,7 +63,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.auth.forgotPassword.email}</Label>
               <Input
                 id="email"
                 type="email"
@@ -77,7 +76,9 @@ export default function ForgotPasswordPage() {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Отправляем…" : "Отправить ссылку"}
+              {isSubmitting
+                ? t.auth.forgotPassword.submitting
+                : t.auth.forgotPassword.submit}
             </Button>
           </form>
         )}
@@ -86,7 +87,7 @@ export default function ForgotPasswordPage() {
             href="/auth/login"
             className="text-foreground font-medium hover:underline"
           >
-            Вернуться ко входу
+            {t.auth.forgotPassword.backToLogin}
           </Link>
         </p>
       </CardContent>

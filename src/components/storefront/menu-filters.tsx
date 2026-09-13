@@ -12,14 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLocale } from "@/components/locale-provider";
 
 type Category = { slug: string; name: string };
-
-const SORT_LABELS: Record<string, string> = {
-  popular: "Популярное",
-  "price-asc": "Сначала дешевле",
-  "price-desc": "Сначала дороже",
-};
 
 export function MenuFilters({ categories }: { categories: Category[] }) {
   const router = useRouter();
@@ -27,6 +22,13 @@ export function MenuFilters({ categories }: { categories: Category[] }) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [, startTransition] = useTransition();
+  const { t } = useLocale();
+
+  const sortLabels: Record<string, string> = {
+    popular: t.menu.sortPopular,
+    "price-asc": t.menu.sortPriceAsc,
+    "price-desc": t.menu.sortPriceDesc,
+  };
 
   function updateParams(next: Record<string, string | undefined>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -48,7 +50,7 @@ export function MenuFilters({ categories }: { categories: Category[] }) {
         }
       >
         <TabsList>
-          <TabsTrigger value="all">Всё</TabsTrigger>
+          <TabsTrigger value="all">{t.menu.categoryAll}</TabsTrigger>
           {categories.map((c) => (
             <TabsTrigger key={c.slug} value={c.slug}>
               {c.name}
@@ -64,7 +66,7 @@ export function MenuFilters({ categories }: { categories: Category[] }) {
             aria-hidden
           />
           <Input
-            placeholder="Поиск по меню…"
+            placeholder={t.menu.searchPlaceholder}
             className="w-48 pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -84,13 +86,13 @@ export function MenuFilters({ categories }: { categories: Category[] }) {
         >
           <SelectTrigger className="w-40">
             <SelectValue>
-              {(value: unknown) => SORT_LABELS[value as string] ?? SORT_LABELS.popular}
+              {(value: unknown) => sortLabels[value as string] ?? sortLabels.popular}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="popular">Популярное</SelectItem>
-            <SelectItem value="price-asc">Сначала дешевле</SelectItem>
-            <SelectItem value="price-desc">Сначала дороже</SelectItem>
+            <SelectItem value="popular">{t.menu.sortPopular}</SelectItem>
+            <SelectItem value="price-asc">{t.menu.sortPriceAsc}</SelectItem>
+            <SelectItem value="price-desc">{t.menu.sortPriceDesc}</SelectItem>
           </SelectContent>
         </Select>
       </div>
