@@ -34,12 +34,20 @@ export function handleApiError(error: unknown) {
  * cookie itself is SameSite=Lax (blocks cross-site form posts/simple
  * requests), and this adds a same-origin check as defense in depth for
  * fetch-based requests that a Lax cookie alone doesn't cover.
+ *
+ * Compares against the request's Host header rather than request.url's
+ * host — under `output: "standalone"` (see Dockerfile/next.config.ts) the
+ * server binds to 0.0.0.0 and request.url reflects that bind address, not
+ * the host the client actually connected to, which would reject every
+ * same-origin request in production.
  */
 export function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true; // same-origin requests from browsers may omit Origin
+  const host = request.headers.get("host");
+  if (!host) return false;
   try {
-    return new URL(origin).host === new URL(request.url).host;
+    return new URL(origin).host === host;
   } catch {
     return false;
   }

@@ -49,3 +49,74 @@ jobs:
 
       - name: Build production image
         run: docker build -t coffeelab:ci .
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: coffeelab
+          POSTGRES_PASSWORD: coffeelab
+          POSTGRES_DB: coffeelab
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U coffeelab -d coffeelab"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://coffeelab:coffeelab@localhost:5432/coffeelab?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-only-access-secret-not-for-production-use
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-not-for-production-use
+      APP_URL: http://localhost:3000
+      SEED_ADMIN_EMAIL: admin@coffeelab.dev
+      SEED_ADMIN_PASSWORD: ChangeMe123!
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Apply migrations and seed
+        run: |
+          npx prisma migrate deploy
+          npx prisma db seed
+
+      - name: Build
+        run: npm run build
+
+      - name: Assemble standalone server assets
+        # `output: "standalone"` (next.config.ts) doesn't bundle public/ or
+        # .next/static — same copy the Dockerfile does for the runtime image.
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

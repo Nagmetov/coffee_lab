@@ -13,7 +13,8 @@
 - Собственная система авторизации: bcrypt + JWT access-токены + ротация
   refresh-токенов, без сторонних auth-провайдеров
 - [Recharts](https://recharts.org) для графиков в админ-панели
-- Vitest для модульных тестов алгоритмической части
+- Vitest для модульных тестов алгоритмической части, [Playwright](https://playwright.dev)
+  для E2E
 
 ## Архитектура и алгоритмы
 
@@ -70,10 +71,14 @@ docker compose exec app npx prisma db seed
 ```bash
 npm run lint          # ESLint
 npm run typecheck     # tsc --noEmit
-npm test              # Vitest
+npm test              # Vitest (модульные тесты)
+npm run test:e2e      # Playwright (нужен запущенный dev-сервер либо он поднимется сам)
 npm run format         # Prettier
 npm run db:studio     # Prisma Studio
 ```
+
+Для `test:e2e` при первом запуске нужно один раз поставить браузер:
+`npx playwright install chromium`.
 
 ## Структура
 
@@ -86,10 +91,12 @@ src/app/auth/         # вход/регистрация/восстановлен
 src/components/       # UI-компоненты (ui/ — shadcn, storefront/, admin/)
 src/lib/               # переиспользуемая логика без побочных эффектов
 src/server/            # доступ к БД/Redis, бизнес-логика по доменам
-tests/                 # модульные тесты (Vitest)
+tests/                 # модульные тесты (Vitest) и tests/e2e — Playwright
 ```
 
 ## CI
 
 `.github/workflows/ci.yml` на каждый push/PR: lint → typecheck → test → build,
-плюс отдельная проверка, что продакшен-образ (`Dockerfile`) собирается.
+отдельная проверка, что продакшен-образ (`Dockerfile`) собирается, и отдельная
+job, которая поднимает Postgres/Redis, собирает standalone-сборку и гоняет по
+ней Playwright.
