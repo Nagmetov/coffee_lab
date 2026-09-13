@@ -1,6 +1,7 @@
 import { listCategories, listProducts } from "@/server/product-service";
 import { MenuFilters } from "@/components/storefront/menu-filters";
 import { ProductCard } from "@/components/storefront/product-card";
+import { FadeIn } from "@/components/fade-in";
 import { getLocale, getDictionary } from "@/i18n/dictionary";
 
 export const metadata = { title: "Меню" };
@@ -30,8 +31,10 @@ export default async function MenuPage({
         <p className="text-muted-foreground mt-16 text-center">{t.menu.empty}</p>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {products.map((product, i) => (
+            <FadeIn key={product.id} delay={Math.min(i, 8) * 60}>
+              <ProductCard product={product} />
+            </FadeIn>
           ))}
         </div>
       )}

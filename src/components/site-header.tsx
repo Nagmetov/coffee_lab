@@ -45,9 +45,12 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           href="/"
-          className="font-heading flex items-center gap-2 text-lg font-semibold"
+          className="font-heading group flex items-center gap-2 text-lg font-semibold"
         >
-          <Coffee className="size-5" aria-hidden />
+          <Coffee
+            className="size-5 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110"
+            aria-hidden
+          />
           CoffeeLab
         </Link>
 
@@ -71,13 +74,16 @@ export function SiteHeader() {
             size="icon"
             variant="ghost"
             aria-label={t.nav.cart}
-            className="relative"
+            className="relative transition-transform duration-200 active:scale-90"
             nativeButton={false}
             render={<Link href="/cart" />}
           >
             <ShoppingBag className="size-5" />
             {!!cart?.itemCount && (
-              <span className="bg-accent text-accent-foreground absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium">
+              <span
+                key={cart.itemCount}
+                className="bg-accent text-accent-foreground animate-bump absolute top-0.5 right-0.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium"
+              >
                 {cart.itemCount > 9 ? "9+" : cart.itemCount}
               </span>
             )}

@@ -13,13 +13,13 @@ export async function ProductCard({ product }: { product: ProductListItem }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group border-border/70 bg-card flex flex-col gap-3 rounded-xl border p-3 transition-shadow hover:shadow-md"
+      className="group border-border/70 bg-card flex flex-col gap-3 rounded-xl border p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       <ProductThumb
         categorySlug={product.categorySlug}
         seed={product.slug}
         imageUrl={product.images[0]}
-        className="w-full"
+        className="w-full overflow-hidden transition-transform duration-500 group-hover:scale-105"
       />
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-2">

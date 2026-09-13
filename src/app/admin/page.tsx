@@ -21,23 +21,27 @@ export default async function AdminDashboardPage() {
           value={formatPrice(stats.revenueToday)}
           icon={DollarSign}
           accent="success"
+          index={0}
         />
         <KpiCard
           label="Заказов сегодня"
           value={String(stats.ordersToday)}
           icon={Receipt}
           accent="info"
+          index={1}
         />
         <KpiCard
           label="Средний чек"
           value={formatPrice(stats.avgOrderValue)}
           icon={TrendingUp}
           accent="warning"
+          index={2}
         />
         <KpiCard
           label="Активные клиенты (14 дн.)"
           value={String(stats.activeCustomers)}
           icon={Users}
+          index={3}
         />
       </div>
 

@@ -39,9 +39,14 @@ export function ThemeToggle() {
       size="icon"
       variant="ghost"
       aria-label={isDark ? "Включить светлую тему" : "Включить тёмную тему"}
+      className="overflow-hidden"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
-      {isDark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+      {isDark ? (
+        <Sun key="sun" className="animate-in zoom-in-50 spin-in-45 size-5 duration-300" />
+      ) : (
+        <Moon key="moon" className="animate-in zoom-in-50 spin-in-45 size-5 duration-300" />
+      )}
     </Button>
   );
 }

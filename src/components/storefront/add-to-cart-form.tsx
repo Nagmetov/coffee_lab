@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Minus, Plus, ShoppingBag } from "lucide-react";
+import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiJson, ApiError } from "@/lib/api-client";
 import { formatPrice } from "@/lib/format";
@@ -27,6 +27,7 @@ export function AddToCartForm({
   const [variantId, setVariantId] = useState(variants[0]?.id);
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
   const { t } = useLocale();
@@ -47,6 +48,8 @@ export function AddToCartForm({
       toast.success(t.product.addedToast);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       router.refresh();
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 1200);
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t.product.addErrorToast);
     } finally {
@@ -106,11 +109,15 @@ export function AddToCartForm({
           </Button>
         </div>
         <Button
-          className="flex-1"
+          className="flex-1 transition-transform active:scale-95"
           disabled={outOfStock || isSubmitting}
           onClick={handleAdd}
         >
-          <ShoppingBag className="size-4" />
+          {justAdded ? (
+            <Check key="check" className="animate-in zoom-in-50 size-4 duration-300" />
+          ) : (
+            <ShoppingBag key="bag" className="size-4" />
+          )}
           {isSubmitting ? t.product.adding : t.product.addToCart}
         </Button>
       </div>

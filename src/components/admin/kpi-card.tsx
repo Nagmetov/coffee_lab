@@ -7,14 +7,19 @@ export function KpiCard({
   value,
   icon: Icon,
   accent,
+  index = 0,
 }: {
   label: string;
   value: string;
   icon: LucideIcon;
   accent?: "success" | "info" | "warning";
+  index?: number;
 }) {
   return (
-    <Card className="gap-2">
+    <Card
+      className="animate-in fade-in-0 slide-in-from-bottom-4 gap-2 fill-mode-backwards duration-500"
+      style={{ "--tw-animation-delay": `${index * 80}ms` } as React.CSSProperties}
+    >
       <CardHeader className="flex-row items-center justify-between pb-0">
         <CardTitle className="text-muted-foreground text-sm font-normal">
           {label}

@@ -54,6 +54,7 @@ export function ReviewForm({ productSlug }: { productSlug: string }) {
             aria-checked={value === rating}
             aria-label={`${value} / 5`}
             onClick={() => setRating(value)}
+            className="transition-transform duration-150 hover:scale-125 active:scale-95"
           >
             <Star
               className={cn(
