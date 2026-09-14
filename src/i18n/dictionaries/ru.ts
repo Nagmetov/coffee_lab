@@ -224,6 +224,7 @@ export const ru = {
     submitting: "Отправляем…",
     successToast: "Сообщение отправлено, спасибо!",
     errorToast: "Не удалось отправить сообщение",
+    openInMaps: "Открыть карту крупнее",
   },
   orders: {
     title: "Мои заказы",

@@ -225,6 +225,7 @@ export const en: Dictionary = {
     submitting: "Sending…",
     successToast: "Message sent, thank you!",
     errorToast: "Couldn't send the message",
+    openInMaps: "Open larger map",
   },
   orders: {
     title: "My orders",

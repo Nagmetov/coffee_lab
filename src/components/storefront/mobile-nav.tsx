@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, User } from "lucide-react";
+import { Clock, MapPin, Menu, Phone, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,16 +14,12 @@ import {
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useLocale } from "@/components/locale-provider";
 
-export function MobileNav() {
+type Category = { id: string; slug: string; name: string };
+
+export function MobileNav({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false);
   const { data: user } = useCurrentUser();
   const { t } = useLocale();
-
-  const navLinks = [
-    { href: "/menu", label: t.nav.menu },
-    { href: "/about", label: t.nav.about },
-    { href: "/contact", label: t.nav.contact },
-  ];
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -36,21 +32,45 @@ export function MobileNav() {
       >
         <Menu className="size-5" />
       </Button>
-      <SheetContent side="left">
+      <SheetContent side="left" className="flex flex-col">
         <SheetHeader>
           <SheetTitle>CoffeeLab</SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col gap-1 px-4">
-          {navLinks.map((link) => (
-            <SheetClose
-              key={link.href}
-              nativeButton={false}
-              render={<Link href={link.href} />}
-              className="hover:bg-muted rounded-md px-2 py-2.5 text-base"
-            >
-              {link.label}
-            </SheetClose>
-          ))}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4">
+          <SheetClose
+            nativeButton={false}
+            render={<Link href="/menu" />}
+            className="hover:bg-muted rounded-md px-2 py-2.5 text-base font-medium"
+          >
+            {t.nav.menu}
+          </SheetClose>
+          <div className="flex flex-col gap-0.5 pl-4">
+            {categories.map((category) => (
+              <SheetClose
+                key={category.id}
+                nativeButton={false}
+                render={<Link href={`/menu?category=${category.slug}`} />}
+                className="hover:bg-muted text-muted-foreground rounded-md px-2 py-2 text-sm"
+              >
+                {category.name}
+              </SheetClose>
+            ))}
+          </div>
+          <SheetClose
+            nativeButton={false}
+            render={<Link href="/about" />}
+            className="hover:bg-muted rounded-md px-2 py-2.5 text-base"
+          >
+            {t.nav.about}
+          </SheetClose>
+          <SheetClose
+            nativeButton={false}
+            render={<Link href="/contact" />}
+            className="hover:bg-muted rounded-md px-2 py-2.5 text-base"
+          >
+            {t.nav.contact}
+          </SheetClose>
+
           <div className="bg-border my-2 h-px" />
           {user ? (
             <>
@@ -79,6 +99,21 @@ export function MobileNav() {
             </SheetClose>
           )}
         </nav>
+
+        <div className="border-border/70 text-muted-foreground space-y-1.5 border-t px-4 py-4 text-xs">
+          <p className="flex items-center gap-1.5">
+            <MapPin className="size-3 shrink-0" aria-hidden />
+            {t.contact.address}
+          </p>
+          <p className="flex items-center gap-1.5">
+            <Clock className="size-3 shrink-0" aria-hidden />
+            {t.contact.hours}
+          </p>
+          <p className="flex items-center gap-1.5">
+            <Phone className="size-3 shrink-0" aria-hidden />
+            {t.contact.phone}
+          </p>
+        </div>
       </SheetContent>
     </Sheet>
   );

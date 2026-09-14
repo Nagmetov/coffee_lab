@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiJson, ApiError } from "@/lib/api-client";
 import { useLocale } from "@/components/locale-provider";
+import { LocationMap } from "@/components/storefront/location-map";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Укажите имя"),
@@ -61,6 +62,9 @@ export default function ContactPage() {
             <span>{t.contact.phone}</span>
           </li>
         </ul>
+        <div className="mt-6">
+          <LocationMap openInMapsLabel={t.contact.openInMaps} />
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
