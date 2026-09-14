@@ -25,13 +25,32 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const description =
+  "CoffeeLab — обжарка и кофейня: зерно, эспрессо-напитки и десерты собственного производства. Закажите онлайн с доставкой или заберите в кофейне.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
     default: "CoffeeLab — специализированная кофейня",
     template: "%s · CoffeeLab",
   },
-  description:
-    "CoffeeLab — обжарка и кофейня: зерно, эспрессо-напитки и десерты собственного производства. Закажите онлайн с доставкой или заберите в кофейне.",
+  description,
+  openGraph: {
+    title: "CoffeeLab — обжарка и кофейня",
+    description,
+    type: "website",
+    locale: "ru_RU",
+    siteName: "CoffeeLab",
+  },
+  twitter: {
+    card: "summary",
+    title: "CoffeeLab — обжарка и кофейня",
+    description,
+  },
+};
+
+export const viewport = {
+  themeColor: "#4a2f1c",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
