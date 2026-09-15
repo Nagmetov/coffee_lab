@@ -40,13 +40,16 @@ test.describe("admin panel", () => {
     page,
   }) => {
     await loginAsAdmin(page);
-    await page.goto("/admin/orders");
+    // Filter to a known non-initial status rather than grabbing whatever
+    // order happens to sort first — that order could itself be PENDING, in
+    // which case its own combobox legitimately lists "Ожидает оплаты" as
+    // the current value.
+    await page.goto("/admin/orders?status=PAID");
 
     const firstStatusSelect = page.getByRole("combobox").first();
     await firstStatusSelect.click();
-    // Whatever the current status is, its own transition menu never offers
-    // to jump straight back to "Ожидает оплаты" (PENDING) — that's not a
-    // legal move for any non-initial state in the order state machine.
+    // From PAID (or any non-initial status), jumping back to "Ожидает
+    // оплаты" (PENDING) is not a legal move in the order state machine.
     await expect(page.getByRole("option", { name: "Ожидает оплаты" })).toHaveCount(0);
   });
 });
