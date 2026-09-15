@@ -1,4 +1,11 @@
-# CoffeeLab
+# CoffeeLab ☕
+
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-8-DC382D?style=flat-square&logo=redis&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=flat-square&logo=prisma&logoColor=white)
+![Playwright](https://img.shields.io/badge/tested_with-Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
 
 Многостраничный интернет-магазин кофейни: каталог с полнотекстовым поиском,
 корзина и оформление заказа, личный кабинет с программой лояльности и
@@ -6,6 +13,38 @@
 Витрина и авторизация двуязычные (RU/EN, переключатель в шапке); каталог
 (названия и описания товаров) и админ-панель остаются на русском — см.
 раздел «Локализация» ниже.
+
+## Возможности
+
+- Каталог с полнотекстовым поиском (`tsvector` + `ts_rank` в PostgreSQL),
+  фильтрами по категориям и контентными рекомендациями «похожие товары»
+- Гостевая корзина в Redis, оформление заказа с атомарным резервированием
+  остатков и явным конечным автоматом статусов
+- Программа лояльности (бронза → платина) и промокоды с проверкой условий
+- Личный кабинет: история заказов, профиль, подтверждение email, сброс пароля
+- Админ-панель: дашборд с графиками, заказы, товары (с загрузкой фото),
+  промокоды, отзывы, аналитика — доступ только для роли `ADMIN`
+- Бесплатные векторные иллюстрации для каждой позиции меню — никаких
+  сток-фото и заглушек
+- RU/EN-переключатель для витрины и авторизации, светлая/тёмная тема
+- Rate limiting и кеширование листингов на Redis, полное покрытие
+  Vitest + Playwright (в т.ч. против прод-сборки)
+
+## Скриншоты
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/home.png" alt="Главная страница CoffeeLab"></td>
+<td width="50%"><img src="docs/screenshots/menu.png" alt="Страница меню с иллюстрациями товаров"></td>
+</tr>
+<tr>
+<td align="center"><sub>Главная</sub></td>
+<td align="center"><sub>Меню — у каждой позиции своя иллюстрация</sub></td>
+</tr>
+</table>
+
+<img src="docs/screenshots/admin.png" alt="Админ-панель — дашборд с аналитикой">
+<p align="center"><sub>Админ-панель — дашборд с аналитикой</sub></p>
 
 ## Стек
 
