@@ -33,6 +33,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Generate route types
+        # `LayoutProps`/`PageProps` come from Next.js's generated
+        # `.next/types` — without this, a clean checkout has no `.next/`
+        # yet and typecheck fails on every typed layout/page.
+        run: npx next typegen
+
       - name: Typecheck
         run: npm run typecheck
 

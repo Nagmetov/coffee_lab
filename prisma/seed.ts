@@ -259,7 +259,7 @@ async function main() {
   const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!";
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
-  await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },
     update: {},
     create: {
@@ -272,7 +272,7 @@ async function main() {
   });
 
   const demoCustomerEmail = "customer@coffeelab.dev";
-  await prisma.user.upsert({
+  const demoCustomer = await prisma.user.upsert({
     where: { email: demoCustomerEmail },
     update: {},
     create: {
@@ -300,6 +300,135 @@ async function main() {
       validTo: new Date("2030-01-01"),
     },
   });
+
+  // A handful of demo orders across different statuses so a fresh seed
+  // isn't a completely empty admin panel — the dashboard/analytics charts
+  // have something to show, and there's always at least one order still
+  // in a non-terminal status for the admin order-list status dropdown.
+  const skus = ["ESP-S", "CAP-M", "LAT-S", "CHK-1", "TIR-1", "CRO-1", "BRW-1"];
+  const variants = await prisma.productVariant.findMany({
+    where: { sku: { in: skus } },
+    include: { product: true },
+  });
+  const variantBySku = new Map(variants.map((v) => [v.sku, v]));
+  const priceOf = (sku: string) => {
+    const v = variantBySku.get(sku)!;
+    return Number(v.product.basePrice) + Number(v.priceModifier);
+  };
+  const now = Date.now();
+  const daysAgo = (n: number) => new Date(now - n * 24 * 60 * 60 * 1000);
+
+  type DemoOrderItem = { sku: string; quantity: number };
+  const demoOrders: {
+    orderNumber: string;
+    status: "PENDING" | "PAID" | "PREPARING" | "READY" | "COMPLETED" | "CANCELLED";
+    createdAt: Date;
+    items: DemoOrderItem[];
+    note?: string;
+  }[] = [
+    {
+      orderNumber: "CL-DEMO0001",
+      status: "PENDING",
+      createdAt: daysAgo(0),
+      items: [{ sku: "CAP-M", quantity: 1 }],
+    },
+    {
+      orderNumber: "CL-DEMO0002",
+      status: "PAID",
+      createdAt: daysAgo(1),
+      items: [
+        { sku: "LAT-S", quantity: 1 },
+        { sku: "CRO-1", quantity: 1 },
+      ],
+    },
+    {
+      orderNumber: "CL-DEMO0003",
+      status: "PREPARING",
+      createdAt: daysAgo(2),
+      items: [
+        { sku: "ESP-S", quantity: 1 },
+        { sku: "CHK-1", quantity: 1 },
+      ],
+    },
+    {
+      orderNumber: "CL-DEMO0004",
+      status: "COMPLETED",
+      createdAt: daysAgo(4),
+      items: [
+        { sku: "ESP-S", quantity: 2 },
+        { sku: "BRW-1", quantity: 1 },
+      ],
+    },
+    {
+      orderNumber: "CL-DEMO0005",
+      status: "CANCELLED",
+      createdAt: daysAgo(6),
+      items: [{ sku: "TIR-1", quantity: 1 }],
+      note: "Клиент передумал",
+    },
+  ];
+
+  for (const demo of demoOrders) {
+    const subtotal = demo.items.reduce(
+      (sum, item) => sum + priceOf(item.sku) * item.quantity,
+      0,
+    );
+    const loyaltyPointsEarned =
+      demo.status === "CANCELLED" ? 0 : Math.floor(subtotal / 10);
+
+    const order = await prisma.order.upsert({
+      where: { orderNumber: demo.orderNumber },
+      update: {},
+      create: {
+        orderNumber: demo.orderNumber,
+        userId: demoCustomer.id,
+        status: demo.status,
+        fulfillmentType: "PICKUP",
+        subtotal,
+        totalAmount: subtotal,
+        loyaltyPointsEarned,
+        note: demo.note,
+        createdAt: demo.createdAt,
+        items: {
+          create: demo.items.map((item) => {
+            const variant = variantBySku.get(item.sku)!;
+            return {
+              productVariantId: variant.id,
+              productName: variant.product.name,
+              variantName: variant.name,
+              quantity: item.quantity,
+              unitPrice: priceOf(item.sku),
+            };
+          }),
+        },
+      },
+    });
+
+    const alreadyHasHistory = await prisma.orderStatusHistory.findFirst({
+      where: { orderId: order.id },
+    });
+    if (!alreadyHasHistory) {
+      await prisma.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          fromStatus: null,
+          toStatus: "PENDING",
+          createdAt: demo.createdAt,
+        },
+      });
+      if (demo.status !== "PENDING") {
+        await prisma.orderStatusHistory.create({
+          data: {
+            orderId: order.id,
+            fromStatus: "PENDING",
+            toStatus: demo.status,
+            changedById: adminUser.id,
+            createdAt: demo.createdAt,
+          },
+        });
+      }
+    }
+  }
 
   console.log("Seeding complete.");
   console.log(`  Admin login:    ${adminEmail} / ${adminPassword}`);
